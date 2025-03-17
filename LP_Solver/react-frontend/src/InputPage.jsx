@@ -14,7 +14,7 @@ function InputPage() {
     Array(constraintsNum).fill({ coefficients: Array(variables).fill(0), sign: "<=", rhs: 0 })
   );
   const [goals, setGoals] = useState(
-    Array(goalsNum).fill({ coefficients: Array(variables).fill(0), sign: "<=", rhs: 0 })
+    Array(goalsNum).fill({ coefficients: Array(variables).fill(0), rhs: 0 })
   );
   const [method, setMethod] = useState("M");
 
@@ -35,6 +35,7 @@ function InputPage() {
             />
           ))}
         </div>
+
         <h3>Constraints</h3>
         {constraints.map(({ coefficients, sign, rhs }, rowIndex) => (
           <div key={rowIndex} style={{ display: "flex", gap: "10px", marginBottom: "10px", alignItems: "center" }}>
@@ -65,8 +66,9 @@ function InputPage() {
             />
           </div>
         ))}
-        {numGoals>0 && <h3>Goals</h3>}
-        {goals.map(({ coefficients, sign, rhs }, rowIndex) => (
+
+        {numGoals > 0 && <h3>Goals</h3>}
+        {goals.map(({ coefficients, rhs }, rowIndex) => (
           <div key={rowIndex} style={{ display: "flex", gap: "10px", marginBottom: "10px", alignItems: "center" }}>
             {coefficients.map((value, colIndex) => (
               <TextField key={colIndex} type="number" variant="outlined" value={value} 
@@ -77,15 +79,7 @@ function InputPage() {
                 }} label={`x${colIndex + 1}`} 
               />
             ))}
-            <Select value={sign} onChange={(e) => {
-              const newGoals = [...goals];
-              newGoals[rowIndex].sign = e.target.value;
-              setGoals(newGoals);
-            }}>
-              <MenuItem value="<=">≤</MenuItem>
-              <MenuItem value=">=">≥</MenuItem>
-              <MenuItem value="=">=</MenuItem>
-            </Select>
+            <span style={{ fontSize: "1.5rem" }}>=</span>
             <TextField type="number" variant="outlined" value={rhs} 
               onChange={(e) => {
                 const newGoals = [...goals];
@@ -95,6 +89,7 @@ function InputPage() {
             />
           </div>
         ))}
+
         {hasGEQorEQ && (
           <FormControl fullWidth sx={{ marginTop: 2 }}>
             <InputLabel>Choose Method</InputLabel>
@@ -104,7 +99,10 @@ function InputPage() {
             </Select>
           </FormControl>
         )}
-        <Button variant="contained" color="primary" fullWidth sx={{ marginTop: 2 }} onClick={() => navigate("/solve")}>Solve</Button>
+
+        <Button variant="contained" color="primary" fullWidth sx={{ marginTop: 2 }} onClick={() => navigate("/solve")}>
+          Solve
+        </Button>
       </CardContent>
     </Card>
   );
