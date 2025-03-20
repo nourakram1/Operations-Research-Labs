@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { Button, TextField, Card, CardContent, Select, MenuItem, FormControlLabel, Checkbox, FormControl, InputLabel } from "@mui/material";
+import { Button, TextField, Card, CardContent, Select, MenuItem, FormControlLabel, Checkbox, FormControl, InputLabel, Radio, RadioGroup } from "@mui/material";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 function InputPage() {
+  const [isMaximization, setIsMaximization] = useState(true);
   const { numVariables, numConstraints, numGoals } = useParams();
   const navigate = useNavigate();
   const variables = Number(numVariables);
@@ -34,6 +35,7 @@ function InputPage() {
 
   const handleSolve = async () => {
     const requestData = {
+      isMaximization,
       method,
       constraintsCoefficientsMatrix,
       constraintsRelations,
@@ -99,6 +101,14 @@ function InputPage() {
       {goalsNum === 0 ? (
           <>
             <h2>Step 2: Enter Objective Function</h2>
+            <RadioGroup
+              row
+              value={isMaximization ? "max" : "min"}
+              onChange={(e) => setIsMaximization(e.target.value === "max")}
+            >
+              <FormControlLabel value="max" control={<Radio />} label="Maximization" />
+              <FormControlLabel value="min" control={<Radio />} label="Minimization" />
+            </RadioGroup>
         <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "nowrap" }}>
           {objectiveFunctionCoefficientsVector.map((coef, index) => (
             <div key={index} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
