@@ -13,7 +13,7 @@ function HomePage() {
   };
 
   return (
-    <Card sx={{ maxWidth: 1000, margin: "auto", padding: 2, textAlign: "center" }}>
+    <Card sx={{ width: 1000, margin: "auto", padding: 2, textAlign: "center" }}>
       <CardContent>
         <h2>Linear Programming Solver</h2>
         <TextField label="Number of Variables" type="number" fullWidth margin="normal"

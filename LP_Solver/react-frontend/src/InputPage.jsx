@@ -35,7 +35,6 @@ function InputPage() {
 
   const handleSolve = async () => {
     const requestData = {
-      isMaximization,
       method,
       constraintsCoefficientsMatrix,
       constraintsRelations,
@@ -54,6 +53,7 @@ function InputPage() {
       console.error("Error sending request:", error);
     }
   };
+
 
   const handleDragEnd = (result) => {
     if (!result.destination) return;
@@ -96,11 +96,11 @@ function InputPage() {
   
 
   return (
-    <Card sx={{ maxWidth: 1000, margin: "auto", padding: 2 }}>
+    <Card sx={{ width: 1000, margin: "auto", padding: 2 }}>
       <CardContent>
       {goalsNum === 0 ? (
           <>
-            <h2>Step 2: Enter Objective Function</h2>
+            <h2>Enter Objective Function</h2>
             <RadioGroup
               row
               value={isMaximization ? "max" : "min"}
@@ -138,7 +138,7 @@ function InputPage() {
         </div>
           </>
         ) :(<>
-          <h2>Step 2: Select Unrestricted Variables</h2>
+          <h2>Select Unrestricted Variables</h2>
           <div style={{ display: "flex", gap: "10px", flexWrap: "nowrap" }}>
             {Array.from({ length: variables }, (_, index) => (
               <FormControlLabel
@@ -158,7 +158,7 @@ function InputPage() {
             ))}
           </div></>)}
 
-        <h3>Constraints</h3>
+        <h2>Enter Constraints</h2>
         {constraintsCoefficientsMatrix.map((row, rowIndex) => (
           <div key={rowIndex} style={{ display: "flex", gap: "10px", marginBottom: "10px", alignItems: "center" }}>
             {row.slice(0, -1).map((value, colIndex) => (
@@ -203,7 +203,7 @@ function InputPage() {
           </div>
         ))}
 
-        {numGoals > 0 && <h3>Goals</h3>}
+        {numGoals > 0 && <h2>Enter Goals</h2>}
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="goals">
             {(provided) => (
