@@ -1,29 +1,36 @@
 from sympy import Matrix, Symbol
-from typing import Union
 from util import sort_expression_arr, compare_expressions
 
 
-class SimplexSolver:
-    def __init__(self, z_rows: Matrix, z_rows_symbols: list[Union[Symbol, None]], m: Matrix, x: Matrix, x_bv: Matrix,
-                 is_maximization: bool) -> None:
+class SimplexEngine:
+    def __init__(self, z_rows: Matrix, z_rows_symbols: list[Symbol | None], m: Matrix, x: list[Symbol], x_bv: list[Symbol],
+                 is_maximization: bool, steps: list[dict]) -> None:
         self.z_rows = z_rows
         self.z_rows_symbols = z_rows_symbols
         self.x_bv = x_bv
         self.x = x
         self.m = m
         self.is_max = is_maximization
+        self.is_optimal: bool = False
+        self.steps = steps
 
 
     def __make_consistent(self) -> None:
         for i in range(self.z_rows.rows):
             for j in range(self.z_rows.cols - 1):
-                # Find a basic variable with a nonzero coefficient
-                if self.z_rows[i, j] != 0 and self.x[j] in self.x_bv:
-                    # Find a 1 in the inconsistent column
-                    for k in range(self.m.rows):
-                        if self.m[k, j] == 1:
-                            self.z_rows[i, :] -= self.z_rows[i, j] * self.m[k, :]
-                            break
+                if self.__is_inconsistent(i, j):
+                    self.__fix_inconsistency(i, j)
+
+
+    def __is_inconsistent(self, i: int, j: int) -> bool:
+        return self.z_rows[i, j] != 0 and self.x[j] in self.x_bv
+
+
+    def __fix_inconsistency(self, i: int, j: int) -> None:
+        for k in range(self.m.rows):
+            if self.m[k, j] == 1:
+                self.z_rows[i, :] -= self.z_rows[i, j] * self.m[k, :]
+                return
 
 
     def __more_prior(self, row_index: int, entering_index: int) -> bool:
@@ -38,17 +45,18 @@ class SimplexSolver:
         num_rows, num_cols = self.z_rows.shape
 
         for row_index in range(num_rows):
+            symbol = self.z_rows_symbols[row_index] if self.z_rows_symbols else None
             for col_index in range(num_cols - 1):
                 value = self.z_rows[row_index, col_index]
                 if self.is_max:
-                    if compare_expressions(value, 0, self.z_rows_symbols[row_index]) < 0:
+                    if compare_expressions(value, 0, symbol) < 0:
                         possible_entering_vars.append((col_index, value))
                 else:
-                    if compare_expressions(value, 0, self.z_rows_symbols[row_index]) > 0:
+                    if compare_expressions(value, 0, symbol) > 0:
                         possible_entering_vars.append((col_index, -value))
-            sorted_arr = sort_expression_arr(possible_entering_vars, self.z_rows_symbols[row_index])
+            sorted_arr = sort_expression_arr(possible_entering_vars, symbol)
             for i in range(len(sorted_arr)):
-                entering_index,_ =  sorted_arr[i]
+                entering_index, _ =  sorted_arr[i]
                 if self.__more_prior(row_index, entering_index):
                     return entering_index
         return -1
@@ -93,14 +101,35 @@ class SimplexSolver:
                 self.m[r, :] -= factor * self.m[row, :]
 
 
-    def solve(self) -> bool:
+    def __push_step(self,
+                    entering_var_index: int | None = None,
+                    leaving_var_index: int | None = None,
+                    comment: str = "") -> None:
+        step = {
+            "zRowsSymbols": self.z_rows_symbols,
+            "basicVariables": self.x_bv.copy(),
+            "simplexMatrix": self.z_rows.col_join(self.m).tolist().copy(),
+            "comment": comment
+        }
+        if entering_var_index is not None and leaving_var_index is not None:
+            step["enteringVariableIndex"] = entering_var_index
+            step["leavingVariableIndex"] = leaving_var_index
+
+        self.steps.append(step)
+
+
+    def reduce(self) -> None:
+        self.__push_step()
         self.__make_consistent()
 
         entering_var: int = self.__find_entering_variable()
         while entering_var != -1:
             leaving_var : int = self.__find_leaving_variable(entering_var)
             if leaving_var != -1:
+                self.__push_step(entering_var, leaving_var)
                 self.__pivot(leaving_var, entering_var)
                 entering_var: int = self.__find_entering_variable()
-            else: return False
-        return True
+            else:
+                self.is_optimal = False
+                return
+        self.is_optimal = True
