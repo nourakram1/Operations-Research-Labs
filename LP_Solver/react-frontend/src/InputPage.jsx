@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { Button, TextField, Card, CardContent, Select, MenuItem, FormControlLabel, Checkbox, FormControl, InputLabel, Radio, RadioGroup } from "@mui/material";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { InlineMath } from "react-katex";
+import "katex/dist/katex.min.css";
 
 function InputPage() {
   const [isMaximization, setIsMaximization] = useState(true);
@@ -46,9 +48,60 @@ function InputPage() {
 
     console.log("Request Data:", requestData);
     try {
-      const response = await axios.post("http://your-backend-url/solve", requestData);
-      console.log("Response:", response.data);
-      navigate("/solve", { state: { result: response.data } });
+      // const response = await axios.post("http://your-backend-url/solve", requestData);
+      // console.log("Response:", response.data);
+      navigate("/solve", { state: { result: {
+        "variables": ["x_1", "x_2", "x_3", "s_1", "s_2", "a_1", "a_2"],
+        "steps": [
+          {
+            "zRows": ["G_1", "G_2"],
+            "basicVariables": ["x_1", "s_3", "s_4"],
+            "simplexMatrix": [
+              [1, 2, 8, 9, 7, 5, 9, 8],
+              [1, 2, 8, 9, 7, 5, 9, 8],
+              [1, 2, 8, 9, 7, 5, 9, 8],
+              [1, 2, 8, 9, 7, 5, 9, 8],
+              [1, 2, 8, 9, 7, 5, 9, 8]
+            ],
+            "enteringVariable": 1,
+            "leavingVariable": 0,
+            "comment": "first standardizing the M method"
+          },
+          {
+            "zRows": ["G_1", "G_2"],
+            "basicVariables": ["x_1", "s_3", "s_4"],
+            "simplexMatrix": [
+              [1, 2, 8, 9, 7, 5, 9, 8],
+              [1, 2, 8, 9, 7, 5, 9, 8],
+              [1, 2, 8, 9, 7, 5, 9, 8],
+              [1, 2, 8, 9, 7, 5, 9, 8],
+              [1, 2, 8, 9, 7, 5, 9, 8]
+            ],
+            "enteringVariable": 2,
+            "leavingVariable": 1,
+            "comment": "first standardizing the M method"
+          },
+          {
+            "zRows": ["G_1", "G_2"],
+            "basicVariables": ["x_1", "s_3", "s_4"],
+            "simplexMatrix": [
+              [1, 2, 8, 9, 7, 5, 9, 8],
+              [1, 2, 8, 9, 7, 5, 9, 8],
+              [1, 2, 8, 9, 7, 5, 9, 8],
+              [1, 2, 8, 9, 7, 5, 9, 8],
+              [1, 2, 8, 9, 7, 5, 9, 8]
+            ],
+            "enteringVariable": 3,
+            "leavingVariable": 2,
+            "comment": "Max z = 180"
+          }
+        ],
+        "isOptimal": true,
+        "goalSatisfied": [true, false, true],
+        "optimalSolution": 120,
+        "basicVariables": ["x1", "s3", "s4"],
+        "basicVariablesValues": [10, 8, 12]
+      } } });
     } catch (error) {
       console.error("Error sending request:", error);
     }
@@ -96,7 +149,7 @@ function InputPage() {
   
 
   return (
-    <Card sx={{ width: 1000, margin: "auto", padding: 2 }}>
+    <Card sx={{ maxWidth: 1000, margin: "auto", padding: 2 }}>
       <CardContent>
       {goalsNum === 0 ? (
           <>
@@ -112,7 +165,7 @@ function InputPage() {
         <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "nowrap" }}>
           {objectiveFunctionCoefficientsVector.map((coef, index) => (
             <div key={index} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <TextField label={`x${index + 1}`} type="text" variant="outlined" value={coef} 
+              <TextField label={<InlineMath>{`x_{${index + 1}}`}</InlineMath>} type="text" variant="outlined" value={coef} 
                 onChange={(e) => {
                   let inputValue = handleNumberChange(e.target.value);
                   const newObj = [...objectiveFunctionCoefficientsVector];
@@ -153,7 +206,7 @@ function InputPage() {
                     }}
                   />
                 }
-                label={`x${index + 1}`}
+                label={<InlineMath>{`x_{${index + 1}}`}</InlineMath>}
               />
             ))}
           </div></>)}
@@ -173,7 +226,7 @@ function InputPage() {
                   newConstraints[rowIndex][colIndex] = inputValue === "" ? "0" : inputValue;
                   setConstraintsMatrix(newConstraints);
                 }}
-                label={`x${colIndex + 1}`}
+                label={<InlineMath>{`x_{${colIndex + 1}}`}</InlineMath>}
               />
             ))}
             <Select
@@ -198,7 +251,7 @@ function InputPage() {
                 newConstraints[rowIndex][variables] = inputValue === "" ? "0" : inputValue;
                 setConstraintsMatrix(newConstraints);
               }}
-              label="RHS"
+              label={<InlineMath>{`RHS`}</InlineMath>}
             />
           </div>
         ))}
@@ -238,7 +291,7 @@ function InputPage() {
                               newGoals[rowIndex][colIndex] = inputValue === "" ? "0" : inputValue;
                               setGoalsMatrix(newGoals);
                             }}
-                            label={`x${colIndex + 1}`}
+                            label={<InlineMath>{`x_{${colIndex + 1}}`}</InlineMath>}
                           />
                         ))}
                         <Select
@@ -259,7 +312,8 @@ function InputPage() {
                               const newGoals = [...goalsCoefficientsMatrix];
                               newGoals[rowIndex][variables] = inputValue === "" ? "0" : inputValue;
                               setGoalsMatrix(newGoals);
-                          }} label="RHS" 
+                          }}
+                          label={<InlineMath>{`RHS`}</InlineMath>}
                         />
                       </div>
                     )}

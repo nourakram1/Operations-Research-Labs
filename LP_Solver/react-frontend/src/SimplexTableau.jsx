@@ -1,5 +1,7 @@
 import React from "react";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
+import { InlineMath } from "react-katex";
+import "katex/dist/katex.min.css";
 
 function SimplexTableau({ data }) {
   return (
@@ -7,7 +9,7 @@ function SimplexTableau({ data }) {
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>Basic</TableCell>
+            <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}><InlineMath>Basic</InlineMath></TableCell>
             {data.variables.map((varName, i) => (
               <TableCell
                 key={i}
@@ -17,7 +19,7 @@ function SimplexTableau({ data }) {
                   backgroundColor: i === data.enteringVariable ? "#ccffcc" : "inherit", // Highlight entering column
                 }}
               >
-                {varName}
+              <InlineMath>{varName}</InlineMath>
               </TableCell>
             ))}
           </TableRow>
@@ -28,7 +30,7 @@ function SimplexTableau({ data }) {
               key={rowIndex}
               sx={rowIndex === data.leavingVariable ? { backgroundColor: "#ffcccc" } : {}}
             >
-              <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>{basicVar}</TableCell>
+              <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}><InlineMath>{basicVar}</InlineMath></TableCell>
               {data.tableau[rowIndex].map((value, colIndex) => (
                 <TableCell
                   key={colIndex}

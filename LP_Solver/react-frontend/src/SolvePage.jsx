@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button, Card, CardContent, Paper, Typography } from "@mui/material";
 import SimplexTableau from "./SimplexTableau"; // Import the table component
+import { InlineMath } from "react-katex";
+import "katex/dist/katex.min.css";
 
 function SolvePage() {
   const location = useLocation();
@@ -34,7 +36,7 @@ function SolvePage() {
           variant="subtitle1" 
           sx={{ backgroundColor: "#f0f0f0", padding: 2, borderRadius: 2, mb: 2 }}
         >
-          <strong>Step {stepIndex + 1}:</strong> {step.comment}
+          <strong>Step {stepIndex + 1}:</strong> {step.comment} {/*<InlineMath>{step.comment}</InlineMath>*/}
         </Typography>
 
         {/* Simplex Tableau Component */}
