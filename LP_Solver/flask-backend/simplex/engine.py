@@ -93,8 +93,9 @@ class SimplexEngine:
         if pivot_element == 0:
             raise ValueError("Error: cannot pivot on a zero element.")
 
-        self.m[row, :] = self.m[row, :] / pivot_element
-        self.__push_step(comment=f"$R_{row + 1} = \\frac{"{"}R_{row + 1}{"}"}{"{"}{pivot_element}{"}"}$")
+        if pivot_element != 1:
+            self.m[row, :] = self.m[row, :] / pivot_element
+            self.__push_step(comment=f"$R_{row + 1} = \\frac{"{"}R_{row + 1}{"}"}{"{"}{pivot_element}{"}"}$")
 
         for r in range(self.z_rows.rows):
             factor = self.z_rows[r, col]

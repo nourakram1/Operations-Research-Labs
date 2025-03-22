@@ -26,8 +26,7 @@ function InputPage() {
     const variables = Number(numVariables);
     const constraintsNum = Number(numConstraints);
     const goalsNum = Number(numGoals);
-
-    const [objectiveFunctionCoefficientsVector, setObjective] = useState(numGoals? null : Array(variables).fill(0));
+    const [objectiveFunctionCoefficientsVector, setObjective] = useState(goalsNum? null : [Array(variables).fill(0)]);
     const [restricted, setRestricted] = useState(Array(variables).fill(true));
     const [constraintsCoefficientsMatrix, setConstraintsMatrix] = useState(
         Array.from({length: constraintsNum}, () => Array(variables + 1).fill(0))
@@ -42,6 +41,8 @@ function InputPage() {
     const hasGEQorEQ = useMemo(() => {
         return constraintsRelations.some((rel) => rel !== "<=");
     }, [constraintsRelations, goalsRelations]);
+
+    console.log(objectiveFunctionCoefficientsVector)
 
     const handleSolve = async () => {
         const requestData = {
