@@ -26,7 +26,7 @@ class Marshaller:
 
         print("Validated input data")
         print(validated_data)
-        simplex_input = {}
+        simplex_input: dict = {}
 
         if validated_data["objectiveFunctionCoefficientsVector"]:
             simplex_input["objective_function_coefficients_vector"] = Matrix(
@@ -51,7 +51,7 @@ class Marshaller:
                 else ArtificialSolutionMethod.TWO_PHASE
         else:
             simplex_input["artificial_solution_method"] = None
-            
+
         print("Simplex input:")
         print(simplex_input["is_maximization"])
         print(simplex_input)
