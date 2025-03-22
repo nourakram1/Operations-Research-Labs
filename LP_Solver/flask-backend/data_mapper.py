@@ -26,7 +26,6 @@ class Marshaller:
 
         print("Validated input data")
         print(validated_data)
-
         simplex_input = {}
 
         if validated_data["objectiveFunctionCoefficientsVector"]:
@@ -46,12 +45,15 @@ class Marshaller:
         else:
             simplex_input["goals_relations"] = None
         simplex_input["restricted"] = list(map(bool, validated_data["restricted"]))
-        simplex_input["is_maximization"] = validated_data["isMaximization"],
-        simplex_input["artificial_solution_method"] = (
-                ArtificialSolutionMethod.BIG_M if validated_data["method"] == "M"
+        simplex_input["is_maximization"] = validated_data["isMaximization"]
+        if validated_data["method"]:
+             simplex_input["artificial_solution_method"] = ArtificialSolutionMethod.BIG_M if validated_data["method"] == "M" \
                 else ArtificialSolutionMethod.TWO_PHASE
-            ),
+        else:
+            simplex_input["artificial_solution_method"] = None
+            
         print("Simplex input:")
+        print(simplex_input["is_maximization"])
         print(simplex_input)
         return simplex_input
 
