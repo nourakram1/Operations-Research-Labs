@@ -14,7 +14,7 @@ function InputPage() {
   const constraintsNum = Number(numConstraints);
   const goalsNum = Number(numGoals);
 
-  const [objectiveFunctionCoefficientsVector, setObjective] = useState(Array(variables).fill(0));
+  const [objectiveFunctionCoefficientsVector, setObjective] = useState([Array(variables).fill(0)]);
   const [restricted, setRestricted] = useState(Array(variables).fill(true));
   const [constraintsCoefficientsMatrix, setConstraintsMatrix] = useState(
     Array.from({ length: constraintsNum }, () => Array(variables + 1).fill(0))
@@ -24,19 +24,15 @@ function InputPage() {
     Array.from({ length: goalsNum }, () => Array(variables + 1).fill(0))
   );
   const [goalsRelations, setGoalsRelations] = useState(Array(goalsNum).fill("="));
-  const [method, setMethod] = useState("Default");
+  const [method, setMethod] = useState("M");
 
   const hasGEQorEQ = useMemo(() => {
-    if(constraintsRelations.some((rel) => rel === "<=")){
-      setMethod("Default")
-    }else{
-      setMethod("M")
-    }
     return constraintsRelations.some((rel) => rel !== "<=");
   }, [constraintsRelations, goalsRelations]);
 
   const handleSolve = async () => {
     const requestData = {
+      isMaximization,
       method,
       constraintsCoefficientsMatrix,
       constraintsRelations,
@@ -112,30 +108,34 @@ function InputPage() {
               <FormControlLabel value="min" control={<Radio />} label="Minimization" />
             </RadioGroup>
         <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "nowrap" }}>
-          {objectiveFunctionCoefficientsVector.map((coef, index) => (
-            <div key={index} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <TextField label={<InlineMath>{`x_{${index + 1}}`}</InlineMath>} type="text" variant="outlined" value={coef} 
-                onChange={(e) => {
-                  let inputValue = handleNumberChange(e.target.value);
-                  const newObj = [...objectiveFunctionCoefficientsVector];
-                  newObj[index] = inputValue === "" ? "0" : inputValue;
-                  setObjective(newObj);
-                }}
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={!restricted[index]}
+          {objectiveFunctionCoefficientsVector[0].map((coef, index) => (
+              <div key={index} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <TextField
+                    label={<InlineMath>{`x_{${index + 1}}`}</InlineMath>}
+                    type="text"
+                    variant="outlined"
+                    value={coef}
                     onChange={(e) => {
-                      const newRestricted = [...restricted];
-                      newRestricted[index] = !e.target.checked;
-                      setRestricted(newRestricted);
+                      let inputValue = handleNumberChange(e.target.value);
+                      const newObj = [...objectiveFunctionCoefficientsVector[0]]; // Clone the first row
+                      newObj[index] = inputValue === "" ? "0" : inputValue;
+                      setObjective([newObj]); // Wrap it back in a 2D array
                     }}
-                  />
-                }
-                label="URS"
-              />
-            </div>
+                />
+                <FormControlLabel
+                    control={
+                      <Checkbox
+                          checked={!restricted[index]}
+                          onChange={(e) => {
+                            const newRestricted = [...restricted];
+                            newRestricted[index] = !e.target.checked;
+                            setRestricted(newRestricted);
+                          }}
+                      />
+                    }
+                    label="URS"
+                />
+              </div>
           ))}
         </div>
           </>
