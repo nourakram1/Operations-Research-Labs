@@ -35,7 +35,7 @@ function SolvePage() {
 
   // Prepare data for SimplexTableau
   const simplexData = {
-    variables: step.variables.concat('\\text{Soltuion}'), // Header row
+    variables: step.variables.concat('\\text{Solution}'), // Header row
     basicVariables: step.zRowsSymbols.concat(step.basicVariables), // First column (basic variables)
     tableau: step.simplexMatrix, // Matrix with first column
     enteringVariable: step.enteringVariableIndex, // Column index for highlighting
