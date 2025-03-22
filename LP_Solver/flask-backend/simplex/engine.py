@@ -3,7 +3,8 @@ from .util import sort_expression_arr, compare_expressions
 
 
 class SimplexEngine:
-    def __init__(self, z_rows: Matrix, symbols_in_z_rows: list[Symbol | None], m: Matrix, x: list[Symbol], x_bv: list[Symbol],
+    def __init__(self, z_rows: Matrix, symbols_in_z_rows: list[Symbol | None], m: Matrix, x: list[Symbol],
+                 x_bv: list[Symbol],
                  is_maximization: bool, steps: list[dict], z_rows_symbols: list[Symbol]) -> None:
         self.z_rows = z_rows
         self.symbols_in_z_rows = symbols_in_z_rows
@@ -14,6 +15,7 @@ class SimplexEngine:
         self.is_optimal: bool = False
         self.steps = steps
         self.z_rows_symbols = z_rows_symbols
+        self.step_cnt = 0
 
 
     def __make_consistent(self) -> None:
@@ -22,15 +24,14 @@ class SimplexEngine:
                 if self.__is_inconsistent(i, j):
                     self.__fix_inconsistency(i, j)
 
-
     def __is_inconsistent(self, i: int, j: int) -> bool:
         return self.z_rows[i, j] != 0 and self.x[j] in self.x_bv
 
 
     def __fix_inconsistency(self, i: int, j: int) -> None:
-        self.__push_step(comment=f"Row ${latex(self.z_rows_symbols[i])}$ is inconsistent")
         for k in range(self.m.rows):
             if self.m[k, j] == 1:
+                self.__push_step(comment=f"Row ${latex(self.z_rows_symbols[i])}$ is inconsistent", cnt_step=False)
                 factor = self.z_rows[i, j]
                 self.z_rows[i, :] -= factor * self.m[k, :]
                 self.__push_step(comment=self.__row_op_comment(self.z_rows_symbols[i], Symbol(f"R_{k + 1}"), factor))
@@ -60,22 +61,22 @@ class SimplexEngine:
                         possible_entering_vars.append((col_index, -value))
             sorted_arr = sort_expression_arr(possible_entering_vars, symbol)
             for i in range(len(sorted_arr)):
-                entering_index, _ =  sorted_arr[i]
+                entering_index, _ = sorted_arr[i]
                 if self.__more_prior(row_index, entering_index):
                     return entering_index
         return -1
 
 
-    def __find_leaving_variable(self, col : int) -> int:
+    def __find_leaving_variable(self, col: int) -> int:
         """
         Returns the row index of the leaving variable or -1 if there is no variable can leave.
         """
-        min_row : int = -1
-        min_ratio : float = float('inf')
+        min_row: int = -1
+        min_ratio: float = float('inf')
 
         for row in range(self.m.rows):
             if self.m[row, col] > 0:
-                ratio : float = self.m[row, -1] / self.m[row, col]
+                ratio: float = self.m[row, -1] / self.m[row, col]
                 if 0 <= ratio < min_ratio:
                     min_ratio = ratio
                     min_row = row
@@ -110,16 +111,21 @@ class SimplexEngine:
                 self.m[r, :] -= factor * self.m[row, :]
                 self.__push_step(comment=self.__row_op_comment(Symbol(f"R_{r + 1}"), Symbol(f"R_{row + 1}"), factor))
 
+
     def __push_step(self,
                     entering_var_index: int | None = None,
                     leaving_var_index: int | None = None,
-                    comment: str = "") -> None:
+                    comment: str = "",
+                    cnt_step: bool = True) -> None:
+        if cnt_step:
+            self.step_cnt += 1
+
         step = {
             "variables": self.x.copy(),
             "zRowsSymbols": self.z_rows_symbols,
             "basicVariables": self.x_bv.copy(),
             "simplexMatrix": self.z_rows.col_join(self.m).tolist().copy(),
-            "comment": comment
+            "comment": f"Step {self.step_cnt}:\n" + comment if cnt_step else comment
         }
         if entering_var_index is not None and leaving_var_index is not None:
             step["enteringVariableIndex"] = entering_var_index
@@ -127,30 +133,36 @@ class SimplexEngine:
 
         self.steps.append(step)
 
+
     @staticmethod
     def __row_op_comment(r1: Symbol, r2: Symbol, factor: Expr) -> str:
         multi_term = len(Add.make_args(factor)) > 1
         sgn = sign(factor)
         if not multi_term:
             factor *= sgn
-        sgn = "+" if  sgn < 0 else "-"
+        if factor == 1:
+            factor = ""
+        sgn = "+" if sgn < 0 else "-"
         lp = "(" if multi_term else ""
         rp = ")" if multi_term else ""
         comment = f"${latex(r1)} = {latex(r1)} {sgn} {lp}{latex(factor)}{rp}{latex(r2)}$"
         return comment
 
+
     def reduce(self) -> None:
-        self.__push_step(comment="Initial simplex tableau")
+        self.__push_step(comment="Initial simplex tableau", cnt_step=False)
         self.__make_consistent()
 
         entering_var: int = self.__find_entering_variable()
         while entering_var != -1:
-            leaving_var : int = self.__find_leaving_variable(entering_var)
+            leaving_var: int = self.__find_leaving_variable(entering_var)
             if leaving_var != -1:
-                self.__push_step(entering_var, leaving_var, f"Entering variable ${latex(self.x[entering_var])}$ and leaving variable ${latex(self.x_bv[leaving_var])}$")
+                self.__push_step(entering_var, leaving_var,
+                                 f"Entering variable ${latex(self.x[entering_var])}$ and leaving variable ${latex(self.x_bv[leaving_var])}$")
                 self.__pivot(leaving_var, entering_var)
                 entering_var: int = self.__find_entering_variable()
             else:
                 self.is_optimal = False
                 break
         self.is_optimal = True
+        self.__push_step()

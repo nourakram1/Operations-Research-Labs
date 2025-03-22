@@ -1,4 +1,4 @@
-from sympy import Matrix, Symbol
+from sympy import Matrix, Symbol, latex
 
 from .enums import RelationOperator, ArtificialSolutionMethod
 from .engine import SimplexEngine
@@ -123,6 +123,8 @@ class SimplexSolver:
             self.aug_constraints_coefficients_matrix.col_del(col_index)
             self.objective_function_coefficients_vector.col_del(col_index)
 
+        self.steps.pop()
+
 
     def __standardize_coeff(self):
         # Create decision variables, add them to vars list and
@@ -246,21 +248,27 @@ class SimplexSolver:
 
 
     def __build_result(self, simplex_engine: SimplexEngine) -> None:
-        self.result["steps"] = simplex_engine.steps
+        self.result["steps"] = self.steps
         self.result["isOptimal"] = simplex_engine.is_optimal
         self.__build__optimal_deci_vars_vals(simplex_engine)
         if self.aug_goals_coefficients_matrix:
             self.__build_goals_result(simplex_engine)
         else:
             self.__build_standard_result(simplex_engine)
+        self.__build_final_comment(simplex_engine)
 
 
     def __build_goals_result(self, simplex_engine: SimplexEngine):
         goals_satisfied = []
+        goals_unsatisfied = []
         for i in range(len(self.z_rows_symbols)):
             if self.__is_satisfied(i, simplex_engine):
                 goals_satisfied.append(self.z_rows_symbols[i])
+            else:
+                goals_unsatisfied.append(self.z_rows_symbols[i])
         self.result["goalsSatisfied"] = goals_satisfied
+        self.result["goalsUnsatisfied"] = goals_unsatisfied
+
 
     def __is_satisfied(self, row_index: int, simplex_engine: SimplexEngine) -> bool:
         for col_index in range(simplex_engine.z_rows.cols):
@@ -297,6 +305,25 @@ class SimplexSolver:
                 sol_list[urv_index] = -simplex_engine.m[row_index, se_cols - 1]
 
         self.result["optimalDecisionVariablesValues"] = sol_list
+
+
+    def __build_final_comment(self, simplex_engine: SimplexEngine):
+        comment = ""
+        if self.aug_goals_coefficients_matrix:
+            if self.result["goalsSatisfied"]:
+                comment += "Goals satisfied: " + ", ".join(
+                    map(lambda g: f"${latex(g)}$", self.result["goalsSatisfied"])) + "\n"
+            if self.result["goalsUnsatisfied"]:
+                comment += "Goals unsatisfied: " + ", ".join(map(lambda g: f"${latex(g)}$", self.result["goalsUnsatisfied"])) + "\n"
+        else:
+            comment += f"Optimal solution found at ${self.z_rows_symbols[0]} = {self.result["optimalObjectiveFunctionValue"]}$" + "\n" \
+                if simplex_engine.is_optimal else "Problem is infeasible\n"
+
+        if simplex_engine.is_optimal:
+            comment += "Where (" + ", ".join([f"$x_{i}$" for i in range(1, len(self.restricted) + 1)]) + ") $=$ (" \
+                    + ", ".join(map(lambda s: f"${latex(s)}$", self.result["optimalDecisionVariablesValues"])) + ")"
+        self.result["steps"][-1]["comment"] = comment
+        print(comment)
 
 
     @staticmethod

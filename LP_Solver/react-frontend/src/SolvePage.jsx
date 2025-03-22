@@ -52,7 +52,7 @@ function SolvePage() {
           variant="subtitle1"
           sx={{ backgroundColor: "#f0f0f0", padding: 2, borderRadius: 2, mb: 2 }}
         >
-          <MathJax>{`Step ${stepIndex + 1}: ` + step.comment}</MathJax>
+          <MathJax style={{whiteSpace: 'pre-line'}}>{step.comment}</MathJax>
         </Typography>
 
         {/* Simplex Tableau Component */}
