@@ -20,12 +20,11 @@ function SolvePage() {
   // Prepare data for SimplexTableau
   const simplexData = {
     variables: result.variables.concat("Solution"), // Header row
-    basicVariables: step.zRows.concat(step.basicVariables), // First column (basic variables)
+    basicVariables: step.zRowsSymbols.concat(step.basicVariables), // First column (basic variables)
     tableau: step.simplexMatrix, // Matrix with first column
-    enteringVariable: step.enteringVariable, // Column index for highlighting
-    leavingVariable: step.leavingVariable, // Row index for highlighting
-  };
-
+    enteringVariable: step.enteringVariableIndex, // Column index for highlighting
+    leavingVariable: step.leavingVariableIndex != null ? step.leavingVariableIndex + step.zRowsSymbols.length : null
+  }
   return (
     <Card sx={{ width: 1000, margin: "auto", padding: 3 }}>
       <CardContent>
