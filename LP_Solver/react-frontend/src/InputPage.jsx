@@ -48,60 +48,9 @@ function InputPage() {
 
     console.log("Request Data:", requestData);
     try {
-      // const response = await axios.post("http://your-backend-url/solve", requestData);
-      // console.log("Response:", response.data);
-      navigate("/solve", { state: { result: {
-        "variables": ["x_1", "x_2", "x_3", "s_1", "s_2", "a_1", "a_2"],
-        "steps": [
-          {
-            "zRows": ["G_1", "G_2"],
-            "basicVariables": ["x_1", "s_3", "s_4"],
-            "simplexMatrix": [
-              [1, 2, 8, 9, 7, 5, 9, 8],
-              [1, 2, 8, 9, 7, 5, 9, 8],
-              [1, 2, 8, 9, 7, 5, 9, 8],
-              [1, 2, 8, 9, 7, 5, 9, 8],
-              [1, 2, 8, 9, 7, 5, 9, 8]
-            ],
-            "enteringVariable": 1,
-            "leavingVariable": 0,
-            "comment": "first standardizing the M method"
-          },
-          {
-            "zRows": ["G_1", "G_2"],
-            "basicVariables": ["x_1", "s_3", "s_4"],
-            "simplexMatrix": [
-              [1, 2, 8, 9, 7, 5, 9, 8],
-              [1, 2, 8, 9, 7, 5, 9, 8],
-              [1, 2, 8, 9, 7, 5, 9, 8],
-              [1, 2, 8, 9, 7, 5, 9, 8],
-              [1, 2, 8, 9, 7, 5, 9, 8]
-            ],
-            "enteringVariable": 2,
-            "leavingVariable": 1,
-            "comment": "first standardizing the M method"
-          },
-          {
-            "zRows": ["G_1", "G_2"],
-            "basicVariables": ["x_1", "s_3", "s_4"],
-            "simplexMatrix": [
-              [1, 2, 8, 9, 7, 5, 9, 8],
-              [1, 2, 8, 9, 7, 5, 9, 8],
-              [1, 2, 8, 9, 7, 5, 9, 8],
-              [1, 2, 8, 9, 7, 5, 9, 8],
-              [1, 2, 8, 9, 7, 5, 9, 8]
-            ],
-            "enteringVariable": 3,
-            "leavingVariable": 2,
-            "comment": "Max z = 180"
-          }
-        ],
-        "isOptimal": true,
-        "goalSatisfied": [true, false, true],
-        "optimalSolution": 120,
-        "basicVariables": ["x1", "s3", "s4"],
-        "basicVariablesValues": [10, 8, 12]
-      } } });
+      const response = await axios.post("http://127.0.0.1:8080/solve", requestData);
+      console.log("Response:", response.data);
+      navigate("/solve", { state: { result: response.data } });
     } catch (error) {
       console.error("Error sending request:", error);
     }

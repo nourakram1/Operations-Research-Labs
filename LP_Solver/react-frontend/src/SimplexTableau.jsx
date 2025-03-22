@@ -39,7 +39,7 @@ function SimplexTableau({ data }) {
                     backgroundColor: colIndex === data.enteringVariable ? "#ccffcc" : "inherit",
                   }}
                 >
-                  {value}
+                  <InlineMath>{value}</InlineMath>
                 </TableCell>
               ))}
             </TableRow>
