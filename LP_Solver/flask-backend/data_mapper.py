@@ -1,18 +1,18 @@
-from marshmallow import Schema, fields, ValidationError
-from sympy import Matrix
-from simplex.simplex_enums import RelationOperator, ArtificialSolutionMethod
-from simplex.solver import SimplexSolver
+from marshmallow import Schema, fields, validate, ValidationError
+from sympy import Matrix, latex, nsimplify
+from simplex.enums import RelationOperator, ArtificialSolutionMethod
 
 
 class SimplexSchema(Schema):
-    objective_function_coefficients_vector = fields.List(fields.Float(), required=False, missing=None)
-    constraints_coefficients_matrix = fields.List(fields.List(fields.Float()), required=True)
-    constraints_relations = fields.List(fields.Str(), required=True)
-    goals_coefficients_matrix = fields.List(fields.List(fields.Float()), required=False, missing=None)
-    goals_relations = fields.List(fields.Str(), required=False, missing=None)
+    objectiveFunctionCoefficientsVector = fields.List(fields.List(fields.Number()), required=False, missing=None)
+    constraintsCoefficientsMatrix = fields.List(fields.List(fields.Number()), required=True)
+    constraintsRelations = fields.List(fields.Str(validate=validate.OneOf([">=", "=", "<="])), required=True)
+    goalsCoefficientsMatrix = fields.List(fields.List(fields.Number()), required=False, missing=None)
+    goalsRelations = fields.List(fields.Str(validate=validate.OneOf([">=", "=", "<="])), required=False, missing=None)
     restricted = fields.List(fields.Boolean(), required=True)
     isMaximization = fields.Boolean(required=False, missing=None)
-    method = fields.Str(required=True, validate=lambda x: x in ["M", "TP"])
+    method = fields.Str(required=False, validate=validate.OneOf(["M", "TP"]), missing=None)
+
 
 class Marshaller:
     schema = SimplexSchema()
@@ -24,46 +24,56 @@ class Marshaller:
         except ValidationError as err:
             raise ValueError(f"Invalid input data: {err.messages}")
 
-        return {
-            "objective_function_coefficients_vector": (
-                Matrix(validated_data["objective_function_coefficients_vector"])
-                if validated_data["objective_function_coefficients_vector"] is not None else None
-            ),
-            "aug_constraints_coefficients_matrix": Matrix(validated_data["constraints_coefficients_matrix"]),
-            "constraints_relations": [RelationOperator(op) for op in validated_data["constraints_relations"]],
-            "aug_goals_coefficients_matrix": (
-                Matrix(validated_data["goals_coefficients_matrix"])
-                if validated_data["goals_coefficients_matrix"] is not None else None
-            ),
-            "goals_relations": [RelationOperator(op) for op in validated_data.get("goals_relations", [])],
-            "restricted": list(map(bool, validated_data["restricted"])),
-            "is_maximization": validated_data["isMaximization"],
-            "artificial_solution_method": (
+        print("Validated input data")
+        print(validated_data)
+
+        simplex_input = {}
+
+        if validated_data["objectiveFunctionCoefficientsVector"]:
+            simplex_input["objective_function_coefficients_vector"] = Matrix(
+                [[nsimplify(val) for val in row] for row in validated_data["objectiveFunctionCoefficientsVector"]])
+        else:
+            simplex_input["objective_function_coefficients_vector"] = None
+        simplex_input["aug_constraints_coefficients_matrix"] = Matrix([[nsimplify(val) for val in row] for row in validated_data["constraintsCoefficientsMatrix"]])
+        simplex_input["constraints_relations"] = [RelationOperator(op) for op in validated_data["constraintsRelations"]]
+        if validated_data["goalsCoefficientsMatrix"]:
+            simplex_input["aug_goals_coefficients_matrix"] = Matrix(
+                [[nsimplify(val) for val in row] for row in validated_data["goalsCoefficientsMatrix"]])
+        else:
+            simplex_input["aug_goals_coefficients_matrix"] = None
+        if validated_data["goalsRelations"]:
+            simplex_input["goals_relations"] = [RelationOperator(op) for op in validated_data["goalsRelations"]]
+        else:
+            simplex_input["goals_relations"] = None
+        simplex_input["restricted"] = list(map(bool, validated_data["restricted"]))
+        simplex_input["is_maximization"] = validated_data["isMaximization"],
+        simplex_input["artificial_solution_method"] = (
                 ArtificialSolutionMethod.BIG_M if validated_data["method"] == "M"
                 else ArtificialSolutionMethod.TWO_PHASE
             ),
-        }
+        print("Simplex input:")
+        print(simplex_input)
+        return simplex_input
 
     @staticmethod
-    def convert_output_data(simplex_solver: SimplexSolver):
+    def convert_output_data(result):
+        print("Simplex result:")
+        print(result)
         return {
-            "variables": [str(var) for var in simplex_solver.vars],
+            "variables": [latex(var) for var in result["variables"]],
             "steps": [
                 {
-                    "zRows": [str(z) for z in step["zRows"]],
-                    "basicVariables": [str(var) for var in step["basicVariables"]],
-                    "simplexMatrix": [[str(cell) for cell in row] for row in step["simplexMatrix"]],
-                    "enteringVariable": step["enteringVariable"],
-                    "leavingVariable": step["leavingVariable"],
-                    "comment": step.get("comment", "")
+                    "zRowsSymbols": [latex(z) for z in step["zRowsSymbols"]],
+                    "basicVariables": [latex(var) for var in step["basicVariables"]],
+                    "simplexMatrix": [[latex(cell) for cell in row] for row in step["simplexMatrix"]],
+                    "enteringVariableIndex": step.get("enteringVariableIndex"),
+                    "leavingVariableIndex": step.get("leavingVariableIndex"),
+                    "comment": step["comment"]
                 }
-                for step in simplex_solver.steps
+                for step in result["steps"]
             ],
-            "isOptimal": simplex_solver.result.get("isOptimal", False),
-            "goalSatisfied": simplex_solver.result.get("goalSatisfied", []),
-            "optimalSolution": simplex_solver.result.get("optimalSolution", None),
-            "basicVariables": [str(var) for var in simplex_solver.basic_vars],
-            "basicVariablesValues": simplex_solver.result.get("basicVariablesValues", [])
+            "isOptimal": result["isOptimal"],
+            "goalsSatisfied": [latex(goal) for goal in result.get("goalsSatisfied", [])],
+            "optimalObjectiveFunctionValue": latex(result["optimalObjectiveFunctionValue"]) if result.get("optimalObjectiveFunctionValue", False) else None,
+            "optimalDecisionVariablesValues": [latex(val) for val in result["optimalDecisionVariablesValues"]]
         }
-
-

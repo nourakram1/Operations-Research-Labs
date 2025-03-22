@@ -1,6 +1,5 @@
-from functools import cmp_to_key
-
 from sympy import Symbol, sympify, Expr
+from functools import cmp_to_key
 
 def compare_expressions(expr1: str | int | float | Expr,
                         expr2: str | int | float | Expr,

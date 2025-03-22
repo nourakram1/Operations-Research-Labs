@@ -1,6 +1,6 @@
 from sympy import Matrix, Symbol
 
-from .simplex_enums import RelationOperator, ArtificialSolutionMethod
+from .enums import RelationOperator, ArtificialSolutionMethod
 from .engine import SimplexEngine
 from .util import compare_expressions
 
@@ -30,6 +30,7 @@ class SimplexSolver:
         self.basic_vars: list[Symbol] = []
         self.artificial_vars: list[tuple[int, Symbol]] = []
         self.penalized_vars: list[tuple[int, int, Symbol]] = []
+        self.symbols_in_z_rows: list[Symbol] = []
         self.z_rows_symbols: list[Symbol] = []
         self.result: dict = {}
 
@@ -46,21 +47,23 @@ class SimplexSolver:
                     self.__init_two_phase()
 
         simplex_engine = SimplexEngine(self.objective_function_coefficients_vector,
-                                       self.z_rows_symbols,
+                                       self.symbols_in_z_rows,
                                        self.aug_constraints_coefficients_matrix,
                                        self.vars,
                                        self.basic_vars,
                                        self.is_maximization,
-                                       self.steps)
+                                       self.steps,
+                                       self.z_rows_symbols)
         simplex_engine.reduce()
         self.__build_result(simplex_engine)
 
 
     def __standardize_z_rows(self):
         if self.aug_goals_coefficients_matrix:
+            self.z_rows_symbols = [Symbol(f'G_{i}') for i in range(1, self.aug_goals_coefficients_matrix.rows + 1)]
             self.__init_goal_programming()
-
         else:
+            self.z_rows_symbols = [Symbol('z')]
             self.__init_standard_simplex()
 
 
@@ -84,13 +87,13 @@ class SimplexSolver:
             zero_row = [0] * cols
             zero_row[col_index] = -penalty_sym
             new_z.append(zero_row)
-            self.z_rows_symbols.append(penalty_sym)
+            self.symbols_in_z_rows.append(penalty_sym)
         self.objective_function_coefficients_vector = Matrix(new_z)
 
 
     def __init_big_m(self):
         M = Symbol('M')
-        self.z_rows_symbols = [M]
+        self.symbols_in_z_rows = [M]
         big_m_coeff = M if self.is_maximization else -M
         for a in self.artificial_vars:
             artificial_var_sym = a[1]
@@ -107,7 +110,8 @@ class SimplexSolver:
                                        self.vars,
                                        self.basic_vars,
                                        False,
-                                       self.steps)
+                                       self.steps,
+                                       [Symbol('r')])
         simplex_engine.reduce()
         self.aug_constraints_coefficients_matrix = simplex_engine.m
         self.basic_vars = simplex_engine.x_bv
@@ -245,6 +249,7 @@ class SimplexSolver:
         self.result["variables"] = simplex_engine.x
         self.result["steps"] = simplex_engine.steps
         self.result["isOptimal"] = simplex_engine.is_optimal
+        self.__build__optimal_deci_vars_vals(simplex_engine)
         if self.aug_goals_coefficients_matrix:
             self.__build_goals_result(simplex_engine)
         else:
@@ -252,20 +257,22 @@ class SimplexSolver:
 
 
     def __build_goals_result(self, simplex_engine: SimplexEngine):
-        self.result["goalSatisfied"] = [self.__is_satisfied(i, simplex_engine) for i in range(simplex_engine.z_rows.rows)]
-
+        goals_satisfied = []
+        for i in range(len(self.z_rows_symbols)):
+            if self.__is_satisfied(i, simplex_engine):
+                goals_satisfied.append(self.z_rows_symbols[i])
+        self.result["goalsSatisfied"] = goals_satisfied
 
     def __is_satisfied(self, row_index: int, simplex_engine: SimplexEngine) -> bool:
         for col_index in range(simplex_engine.z_rows.cols):
             s = simplex_engine.z_rows[row_index, col_index]
-            if compare_expressions(s, 0, self.z_rows_symbols[row_index]) > 0 and simplex_engine.x[col_index] not in simplex_engine.x_bv:
+            if compare_expressions(s, 0, self.symbols_in_z_rows[row_index]) > 0 and simplex_engine.x[col_index] not in simplex_engine.x_bv:
                 return False
         return True
 
 
     def __build_standard_result(self, simplex_engine: SimplexEngine):
         self.__build__optimal_obj_func_val(simplex_engine)
-        self.__build__optimal_deci_vars_vals(simplex_engine)
 
 
     def __build__optimal_obj_func_val(self, simplex_engine: SimplexEngine):

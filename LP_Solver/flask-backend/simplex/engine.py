@@ -1,18 +1,19 @@
 from sympy import Matrix, Symbol
-from util import sort_expression_arr, compare_expressions
+from .util import sort_expression_arr, compare_expressions
 
 
 class SimplexEngine:
-    def __init__(self, z_rows: Matrix, z_rows_symbols: list[Symbol | None], m: Matrix, x: list[Symbol], x_bv: list[Symbol],
-                 is_maximization: bool, steps: list[dict]) -> None:
+    def __init__(self, z_rows: Matrix, symbols_in_z_rows: list[Symbol | None], m: Matrix, x: list[Symbol], x_bv: list[Symbol],
+                 is_maximization: bool, steps: list[dict], z_rows_symbols: list[Symbol]) -> None:
         self.z_rows = z_rows
-        self.z_rows_symbols = z_rows_symbols
+        self.symbols_in_z_rows = symbols_in_z_rows
         self.x_bv = x_bv
         self.x = x
         self.m = m
         self.is_max = is_maximization
         self.is_optimal: bool = False
         self.steps = steps
+        self.z_rows_symbols = z_rows_symbols
 
 
     def __make_consistent(self) -> None:
@@ -45,7 +46,7 @@ class SimplexEngine:
         num_rows, num_cols = self.z_rows.shape
 
         for row_index in range(num_rows):
-            symbol = self.z_rows_symbols[row_index] if self.z_rows_symbols else None
+            symbol = self.symbols_in_z_rows[row_index] if self.symbols_in_z_rows else None
             for col_index in range(num_cols - 1):
                 value = self.z_rows[row_index, col_index]
                 if self.is_max:
@@ -132,4 +133,5 @@ class SimplexEngine:
             else:
                 self.is_optimal = False
                 return
+        self.__push_step()
         self.is_optimal = True

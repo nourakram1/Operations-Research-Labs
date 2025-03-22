@@ -16,9 +16,12 @@ def solve():
         data = request.get_json()
 
         simplex_input = Marshaller.convert_input_data(data)
+        print("Parsed input")
         simplex_solver = SimplexSolver(**simplex_input)
         simplex_solver.solve()
-        output = Marshaller.convert_output_data(simplex_solver)
+        print("Solved")
+        output = Marshaller.convert_output_data(simplex_solver.result)
+        print("Result Sent")
         return jsonify(output), 200
 
     except ValidationError as err:

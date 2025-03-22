@@ -5,6 +5,6 @@ class ArtificialSolutionMethod(Enum):
     TWO_PHASE = 2
 
 class RelationOperator(Enum):
-    EQU = 1
-    LEQ = 2
-    GEQ = 3
+    EQU = "="
+    LEQ = "<="
+    GEQ = ">="
