@@ -130,7 +130,10 @@ class SimplexEngine:
     @staticmethod
     def __row_op_comment(r1: Symbol, r2: Symbol, factor: Expr) -> str:
         multi_term = len(Add.make_args(factor)) > 1
-        sgn = "+" if sign(factor) > 0 else ""
+        sgn = sign(factor)
+        if not multi_term:
+            factor *= sgn
+        sgn = "+" if  sgn < 0 else "-"
         lp = "(" if multi_term else ""
         rp = ")" if multi_term else ""
         comment = f"${latex(r1)} = {latex(r1)} {sgn} {lp}{latex(factor)}{rp}{latex(r2)}$"
