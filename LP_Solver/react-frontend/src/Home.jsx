@@ -15,16 +15,13 @@ function HomePage() {
   return (
     <Card sx={{ width: 1000, margin: "auto", padding: 2, textAlign: "center" }}>
       <CardContent>
-        <h2>Linear Programming Solver</h2>
+        <h2 className='title'>Linear Programming Solver</h2>
         <TextField label="Number of Variables" type="number" fullWidth margin="normal"
-          value={numVariables} onChange={(e) => setNumVariables(Math.max(2, Number(e.target.value)))} 
-          inputProps={{ min: 2 }} />
+          value={numVariables} onChange={(e) => setNumVariables(Math.max(2, Number(e.target.value)))}/>
         <TextField label="Number of Constraints" type="number" fullWidth margin="normal"
-          value={numConstraints} onChange={(e) => setNumConstraints(Math.max(1, Number(e.target.value)))} 
-          inputProps={{ min: 1 }} />
+          value={numConstraints} onChange={(e) => setNumConstraints(Math.max(1, Number(e.target.value)))}/>
         <TextField label="Number of Goals" type="number" fullWidth margin="normal"
-          value={numGoals} onChange={(e) => setNumGoals(Math.max(0, Number(e.target.value)))} 
-          inputProps={{ min: 0 }} />
+          value={numGoals} onChange={(e) => setNumGoals(Math.max(0, Number(e.target.value)))}/>
         <Button variant="contained" color="primary" fullWidth sx={{ marginTop: 2 }} onClick={handleStart}>Start</Button>
       </CardContent>
     </Card>

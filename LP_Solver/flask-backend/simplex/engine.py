@@ -1,4 +1,4 @@
-from sympy import Matrix, Symbol
+from sympy import Matrix, Symbol, latex, Expr, Add, sign
 from .util import sort_expression_arr, compare_expressions
 
 
@@ -28,9 +28,12 @@ class SimplexEngine:
 
 
     def __fix_inconsistency(self, i: int, j: int) -> None:
+        self.__push_step(comment=f"Row ${latex(self.z_rows_symbols[i])}$ is inconsistent")
         for k in range(self.m.rows):
             if self.m[k, j] == 1:
-                self.z_rows[i, :] -= self.z_rows[i, j] * self.m[k, :]
+                factor = self.z_rows[i, j]
+                self.z_rows[i, :] -= factor * self.m[k, :]
+                self.__push_step(comment=self.__row_op_comment(self.z_rows_symbols[i], Symbol(f"R_{k + 1}"), factor))
                 return
 
 
@@ -91,22 +94,27 @@ class SimplexEngine:
             raise ValueError("Error: cannot pivot on a zero element.")
 
         self.m[row, :] = self.m[row, :] / pivot_element
+        self.__push_step(comment=f"$R_{row + 1} = \\frac{"{"}R_{row + 1}{"}"}{"{"}{pivot_element}{"}"}$")
 
         for r in range(self.z_rows.rows):
             factor = self.z_rows[r, col]
+            if factor == 0: continue
             self.z_rows[r, :] -= factor * self.m[row, :]
+            self.__push_step(comment=self.__row_op_comment(self.z_rows_symbols[r], Symbol(f"R_{row + 1}"), factor))
 
         for r in range(self.m.rows):
             if r != row:
                 factor = self.m[r, col]
+                if factor == 0: continue
                 self.m[r, :] -= factor * self.m[row, :]
-
+                self.__push_step(comment=self.__row_op_comment(Symbol(f"R_{r + 1}"), Symbol(f"R_{row + 1}"), factor))
 
     def __push_step(self,
                     entering_var_index: int | None = None,
                     leaving_var_index: int | None = None,
                     comment: str = "") -> None:
         step = {
+            "variables": self.x.copy(),
             "zRowsSymbols": self.z_rows_symbols,
             "basicVariables": self.x_bv.copy(),
             "simplexMatrix": self.z_rows.col_join(self.m).tolist().copy(),
@@ -118,20 +126,27 @@ class SimplexEngine:
 
         self.steps.append(step)
 
+    @staticmethod
+    def __row_op_comment(r1: Symbol, r2: Symbol, factor: Expr) -> str:
+        multi_term = len(Add.make_args(factor)) > 1
+        sgn = "+" if sign(factor) > 0 else ""
+        lp = "(" if multi_term else ""
+        rp = ")" if multi_term else ""
+        comment = f"${latex(r1)} = {latex(r1)} {sgn} {lp}{latex(factor)}{rp}{latex(r2)}$"
+        return comment
 
     def reduce(self) -> None:
-        self.__push_step()
+        self.__push_step(comment="Initial simplex tableau")
         self.__make_consistent()
 
         entering_var: int = self.__find_entering_variable()
         while entering_var != -1:
             leaving_var : int = self.__find_leaving_variable(entering_var)
             if leaving_var != -1:
-                self.__push_step(entering_var, leaving_var)
+                self.__push_step(entering_var, leaving_var, f"Entering variable ${latex(self.x[entering_var])}$ and leaving variable ${latex(self.x_bv[leaving_var])}$")
                 self.__pivot(leaving_var, entering_var)
                 entering_var: int = self.__find_entering_variable()
             else:
                 self.is_optimal = False
-                return
-        self.__push_step()
+                break
         self.is_optimal = True

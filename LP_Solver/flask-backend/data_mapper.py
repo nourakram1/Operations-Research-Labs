@@ -53,7 +53,6 @@ class Marshaller:
             simplex_input["artificial_solution_method"] = None
 
         print("Simplex input:")
-        print(simplex_input["is_maximization"])
         print(simplex_input)
         return simplex_input
 
@@ -62,9 +61,9 @@ class Marshaller:
         print("Simplex result:")
         print(result)
         return {
-            "variables": [latex(var) for var in result["variables"]],
             "steps": [
                 {
+                    "variables": [latex(var) for var in step["variables"]],
                     "zRowsSymbols": [latex(z) for z in step["zRowsSymbols"]],
                     "basicVariables": [latex(var) for var in step["basicVariables"]],
                     "simplexMatrix": [[latex(cell) for cell in row] for row in step["simplexMatrix"]],

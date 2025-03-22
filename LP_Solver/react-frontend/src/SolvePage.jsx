@@ -3,7 +3,23 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Button, Card, CardContent, Paper, Typography } from "@mui/material";
 import SimplexTableau from "./SimplexTableau"; // Import the table component
 import { InlineMath } from "react-katex";
+import { MathJax, MathJaxContext } from "better-react-mathjax";
 import "katex/dist/katex.min.css";
+
+const config = {
+  loader: { load: ["[tex]/html"] },
+  tex: {
+    packages: { "[+]": ["html"] },
+    inlineMath: [
+      ["$", "$"],
+      ["\\(", "\\)"]
+    ],
+    displayMath: [
+      ["$$", "$$"],
+      ["\\[", "\\]"]
+    ]
+  }
+};
 
 function SolvePage() {
   const location = useLocation();
@@ -19,44 +35,45 @@ function SolvePage() {
 
   // Prepare data for SimplexTableau
   const simplexData = {
-    variables: result.variables.concat("Solution"), // Header row
+    variables: step.variables.concat('\\text{Soltuion}'), // Header row
     basicVariables: step.zRowsSymbols.concat(step.basicVariables), // First column (basic variables)
     tableau: step.simplexMatrix, // Matrix with first column
     enteringVariable: step.enteringVariableIndex, // Column index for highlighting
     leavingVariable: step.leavingVariableIndex != null ? step.leavingVariableIndex + step.zRowsSymbols.length : null
   }
   return (
-    <Card sx={{ width: 1000, margin: "auto", padding: 3 }}>
+    <MathJaxContext version={3} config={config}>
+      <Card sx={{ width: 1000, margin: "auto", padding: 3 }}>
       <CardContent>
-        <h2>Solution</h2>
+        <h2 className='title'>Solution</h2>
 
         {/* Comment Section */}
-        <Typography 
-          variant="subtitle1" 
+        <Typography
+          variant="subtitle1"
           sx={{ backgroundColor: "#f0f0f0", padding: 2, borderRadius: 2, mb: 2 }}
         >
-          <strong>Step {stepIndex + 1}:</strong> {step.comment} {/*<InlineMath>{step.comment}</InlineMath>*/}
+          <MathJax>{`Step ${stepIndex + 1}: ` + step.comment}</MathJax>
         </Typography>
 
         {/* Simplex Tableau Component */}
-        <Paper>
+        <Paper sx={{boxShadow: "none"}}>
           <SimplexTableau data={simplexData} />
         </Paper>
 
         {/* Navigation Buttons */}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
-          <Button 
-            variant="contained" 
-            color="secondary" 
-            onClick={() => setStepIndex((prev) => Math.max(0, prev - 1))} 
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => setStepIndex((prev) => Math.max(0, prev - 1))}
             disabled={stepIndex === 0}
           >
             Previous
           </Button>
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={() => setStepIndex((prev) => Math.min(result.steps.length - 1, prev + 1))} 
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setStepIndex((prev) => Math.min(result.steps.length - 1, prev + 1))}
             disabled={stepIndex === result.steps.length - 1}
           >
             Next
@@ -64,11 +81,11 @@ function SolvePage() {
         </div>
 
         {/* Show Final Solution Button */}
-        <Button 
-          variant="contained" 
-          color="success" 
-          fullWidth 
-          sx={{ marginTop: 2 }} 
+        <Button
+          variant="contained"
+          color="success"
+          fullWidth
+          sx={{ marginTop: 2 }}
           onClick={() => setStepIndex(result.steps.length - 1)}
           disabled={stepIndex === result.steps.length - 1}
         >
@@ -76,17 +93,18 @@ function SolvePage() {
         </Button>
 
         {/* Restart Button */}
-        <Button 
-          variant="contained" 
-          color="primary" 
-          fullWidth 
-          sx={{ marginTop: 2 }} 
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          sx={{ marginTop: 2 }}
           onClick={() => navigate("/")}
         >
           Start Over
         </Button>
       </CardContent>
     </Card>
+    </MathJaxContext>
   );
 }
 

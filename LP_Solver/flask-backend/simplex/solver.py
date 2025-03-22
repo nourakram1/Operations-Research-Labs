@@ -81,7 +81,7 @@ class SimplexSolver:
         cols = self.aug_constraints_coefficients_matrix.cols
         new_z = []
         for p in self.penalized_vars:
-            penalty_sym = Symbol(f'P_{p[0] + 1}')
+            penalty_sym = Symbol(f'P_{p[0] + 1}', positive=True)
             penalized_var_sym = p[2]
             col_index = self.vars.index(penalized_var_sym)
             zero_row = [0] * cols
@@ -92,7 +92,7 @@ class SimplexSolver:
 
 
     def __init_big_m(self):
-        M = Symbol('M')
+        M = Symbol('M', positive=True)
         self.symbols_in_z_rows = [M]
         big_m_coeff = M if self.is_maximization else -M
         for a in self.artificial_vars:
@@ -246,7 +246,6 @@ class SimplexSolver:
 
 
     def __build_result(self, simplex_engine: SimplexEngine) -> None:
-        self.result["variables"] = simplex_engine.x
         self.result["steps"] = simplex_engine.steps
         self.result["isOptimal"] = simplex_engine.is_optimal
         self.__build__optimal_deci_vars_vals(simplex_engine)

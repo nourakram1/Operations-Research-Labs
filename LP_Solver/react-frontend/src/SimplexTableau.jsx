@@ -5,11 +5,11 @@ import "katex/dist/katex.min.css";
 
 function SimplexTableau({ data }) {
   return (
-    <TableContainer component={Paper} sx={{ maxWidth: 1000, margin: "auto", mt: 3 }}>
+    <TableContainer component={Paper} sx={{ maxWidth: 1000, mt: 3, mb: 3, boxShadow: "none", border: "solid grey 2px" }}>
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}><InlineMath>Basic</InlineMath></TableCell>
+            <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}><InlineMath>{'\\text{Basic}'}</InlineMath></TableCell>
             {data.variables.map((varName, i) => (
               <TableCell
                 key={i}
