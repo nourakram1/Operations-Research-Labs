@@ -24,6 +24,7 @@ class SimplexEngine:
                 if self.__is_inconsistent(i, j):
                     self.__fix_inconsistency(i, j)
 
+
     def __is_inconsistent(self, i: int, j: int) -> bool:
         return self.z_rows[i, j] != 0 and self.x[j] in self.x_bv
 

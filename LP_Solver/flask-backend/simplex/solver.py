@@ -84,10 +84,14 @@ class SimplexSolver:
             penalty_sym = Symbol(f'P_{p[0] + 1}', positive=True)
             penalized_var_sym = p[2]
             col_index = self.vars.index(penalized_var_sym)
-            zero_row = [0] * cols
-            zero_row[col_index] = -penalty_sym
-            new_z.append(zero_row)
-            self.symbols_in_z_rows.append(penalty_sym)
+            if p[0] < len(new_z):
+                new_z[p[0]][col_index] = -penalty_sym
+            else:
+                zero_row = [0] * cols
+                zero_row[col_index] = -penalty_sym
+                new_z.append(zero_row)
+                self.symbols_in_z_rows.append(penalty_sym)
+
         self.objective_function_coefficients_vector = Matrix(new_z)
 
 
@@ -165,10 +169,9 @@ class SimplexSolver:
                      + [a[1] for a in self.artificial_vars] \
 
         # Add basic variables
-        self.basic_vars += [p[2] for p in self.penalized_vars]    \
+        self.basic_vars += [p[2] for p in list(filter(lambda pv: pv[1] > 0, self.penalized_vars))]    \
                            + [s[1] for s in slack_vars]           \
                            + [a[1] for a in self.artificial_vars] \
-
 
 
     def __init_decision_vars(self) -> None:
