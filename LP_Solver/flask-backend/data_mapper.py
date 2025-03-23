@@ -59,8 +59,7 @@ class Marshaller:
     @staticmethod
     def convert_output_data(result):
         print("Simplex result:")
-        print(result)
-        return {
+        r: dict = {
             "steps": [
                 {
                     "variables": [latex(var) for var in step["variables"]],
@@ -74,7 +73,12 @@ class Marshaller:
                 for step in result["steps"]
             ],
             "isOptimal": result["isOptimal"],
-            "goalsSatisfied": [latex(goal) for goal in result.get("goalsSatisfied", [])],
-            "optimalObjectiveFunctionValue": latex(result["optimalObjectiveFunctionValue"]) if result.get("optimalObjectiveFunctionValue", False) else None,
             "optimalDecisionVariablesValues": [latex(val) for val in result["optimalDecisionVariablesValues"]]
         }
+        if result.get("goalsSatisfied"):
+            r["goalsSatisfied"] = [latex(goal) for goal in result.get("goalsSatisfied", [])]
+        else:
+            r["optimalObjectiveFunctionValue"] =  latex(result["optimalObjectiveFunctionValue"])
+
+        return r
+
