@@ -60,21 +60,21 @@ class SimplexSolver:
 
     def __standardize_z_rows(self):
         if self.aug_goals_coefficients_matrix:
-            self.z_rows_symbols = [Symbol(f'G_{i}') for i in range(1, self.aug_goals_coefficients_matrix.rows + 1)]
-            self.__init_goal_programming()
+            self.__standardize_goal_programming_z_rows()
         else:
             self.z_rows_symbols = [Symbol('z')]
-            self.__init_standard_simplex()
+            self.__standardize_single_objective_simplex_z_rows()
 
 
-    def __init_standard_simplex(self):
+    def __standardize_single_objective_simplex_z_rows(self):
          self.objective_function_coefficients_vector *= -1
          self.objective_function_coefficients_vector = self.objective_function_coefficients_vector.row_join(Matrix([
             [0] * (self.aug_constraints_coefficients_matrix.cols - self.objective_function_coefficients_vector.cols)
         ]))
 
 
-    def __init_goal_programming(self):
+    def __standardize_goal_programming_z_rows(self):
+        self.z_rows_symbols = [Symbol(f'G_{i}') for i in range(1, self.aug_goals_coefficients_matrix.rows + 1)]
         self.aug_constraints_coefficients_matrix = self.aug_goals_coefficients_matrix.col_join(
             self.aug_constraints_coefficients_matrix)
         self.is_maximization = False
@@ -166,12 +166,12 @@ class SimplexSolver:
                      + [f[2] for f in favored_vars]         \
                      + [p[2] for p in self.penalized_vars]  \
                      + [s[1] for s in slack_vars]           \
-                     + [a[1] for a in self.artificial_vars] \
+                     + [a[1] for a in self.artificial_vars]
 
         # Add basic variables
         self.basic_vars += [p[2] for p in list(filter(lambda pv: pv[1] > 0, self.penalized_vars))]    \
                            + [s[1] for s in slack_vars]           \
-                           + [a[1] for a in self.artificial_vars] \
+                           + [a[1] for a in self.artificial_vars]
 
 
     def __init_decision_vars(self) -> None:
@@ -189,6 +189,7 @@ class SimplexSolver:
                 else:
                     negated_col = -self.objective_function_coefficients_vector[:, i + num_inserted_cols]
                     self.objective_function_coefficients_vector = self.objective_function_coefficients_vector.col_insert(i + num_inserted_cols + 1, negated_col)
+                num_inserted_cols += 1
             else:
                 self.vars.append(Symbol(f"x_{i + 1}"))
                 self.restricted_decision_vars.append((i, Symbol( f"x_{i + 1}")))
@@ -223,10 +224,10 @@ class SimplexSolver:
                         penalized_vars.append((idx, 1, Symbol(f"y_{idx + 1}^-")))
                         favored_vars.append((idx, -1, Symbol(f"y_{idx + 1}^+")))
                     case RelationOperator.EQU:
-                        favored_vars.append((idx, 1, Symbol(f"y_{idx + 1}^-")))
+                        penalized_vars.append((idx, 1, Symbol(f"y_{idx + 1}^-")))
                         penalized_vars.append((idx, -1, Symbol(f"y_{idx + 1}^+")))
                     case RelationOperator.LEQ:
-                        penalized_vars.append((idx, 1, Symbol(f"y_{idx + 1}^-")))
+                        favored_vars.append((idx, 1, Symbol(f"y_{idx + 1}^-")))
                         penalized_vars.append((idx, -1, Symbol(f"y_{idx + 1}^+")))
 
         return penalized_vars, favored_vars
@@ -274,7 +275,7 @@ class SimplexSolver:
 
 
     def __is_satisfied(self, row_index: int, simplex_engine: SimplexEngine) -> bool:
-        for col_index in range(simplex_engine.z_rows.cols):
+        for col_index in range(simplex_engine.z_rows.cols - 1):
             s = simplex_engine.z_rows[row_index, col_index]
             if compare_expressions(s, 0, self.symbols_in_z_rows[row_index]) > 0 and simplex_engine.x[col_index] not in simplex_engine.x_bv:
                 return False
