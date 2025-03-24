@@ -39,6 +39,8 @@ function InputPage() {
     const [method, setMethod] = useState("M");
 
     const hasGEQorEQ = useMemo(() => {
+        if(goalsNum > 0) setMethod("TP");
+        else setMethod("M");
         return constraintsRelations.some((rel) => rel !== "<=");
     }, [constraintsRelations, goalsRelations]);
 
@@ -285,10 +287,10 @@ function InputPage() {
                     </Droppable>
                 </DragDropContext>
 
-                {hasGEQorEQ && (
+                {hasGEQorEQ && !goalsNum && (
                     <FormControl fullWidth sx={{marginTop: 2}}>
                         <InputLabel>Choose Method</InputLabel>
-                        <Select value={method} onChange={(e) => setMethod(e.target.value)} variant='outlined'>
+                        <Select value={method} onChange={(e) => setMethod(e.target.value)} variant='outlined' label={"Choose Method"}>
                             <MenuItem value="M">M Method</MenuItem>
                             <MenuItem value="TP">Two-Phase</MenuItem>
                         </Select>
