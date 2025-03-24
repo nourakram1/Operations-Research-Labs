@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import React, {useMemo, useState } from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import axios from "axios";
 import {
@@ -18,28 +18,24 @@ import {
 import {DragDropContext, Draggable, Droppable} from "@hello-pangea/dnd";
 import {InlineMath} from "react-katex";
 import "katex/dist/katex.min.css";
+import { useLP } from "./LPContext";
 
 function InputPage() {
-    const [isMaximization, setIsMaximization] = useState(true);
-    const {numVariables, numConstraints, numGoals} = useParams();
     const navigate = useNavigate();
-    const variables = Number(numVariables);
-    const constraintsNum = Number(numConstraints);
-    const goalsNum = Number(numGoals);
-    const [objectiveFunctionCoefficientsVector, setObjective] = useState(goalsNum? null : [Array(variables).fill(0)]);
-    const [restricted, setRestricted] = useState(Array(variables).fill(true));
-    const [constraintsCoefficientsMatrix, setConstraintsMatrix] = useState(
-        Array.from({length: constraintsNum}, () => Array(variables + 1).fill(0))
-    );
-    const [constraintsRelations, setConstraintsRelations] = useState(Array(constraintsNum).fill("<="));
-    const [goalsCoefficientsMatrix, setGoalsMatrix] = useState(
-        Array.from({length: goalsNum}, () => Array(variables + 1).fill(0))
-    );
-    const [goalsRelations, setGoalsRelations] = useState(Array(goalsNum).fill("="));
-    const [method, setMethod] = useState("M");
+    const {
+        numVariables, numConstraints, numGoals,
+        isMaximization, setIsMaximization,
+        objectiveFunctionCoefficientsVector, setObjective,
+        restricted, setRestricted,
+        constraintsCoefficientsMatrix, setConstraintsMatrix,
+        constraintsRelations, setConstraintsRelations,
+        goalsCoefficientsMatrix, setGoalsMatrix,
+        goalsRelations, setGoalsRelations,
+        method, setMethod
+    } = useLP();
 
     const hasGEQorEQ = useMemo(() => {
-        if(goalsNum > 0) setMethod("TP");
+        if(numGoals > 0) setMethod("TP");
         else setMethod("M");
         return constraintsRelations.some((rel) => rel !== "<=");
     }, [constraintsRelations, goalsRelations]);
@@ -108,11 +104,11 @@ function InputPage() {
 
 
     return (
-        <Card sx={{maxWidth: 1000, margin: "auto", padding: 2, textAlign: "center"}}>
+        <Card sx={{maxWidth: 1000, margin: "auto", padding: 2, textAlign: "center", borderRadius: 4, boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.3)" }}>
             <CardContent>
                 <h2 className='title'>Select Unrestricted Variables</h2>
                 <div style={{display: "flex", gap: "10px", flexWrap: "nowrap", justifyContent: "center"}}>
-                    {Array.from({length: variables}, (_, index) => (
+                    {Array.from({length: numVariables}, (_, index) => (
                         <FormControlLabel
                             key={index}
                             control={
@@ -129,7 +125,7 @@ function InputPage() {
                         />
                     ))}
                 </div>
-                {!goalsNum && (
+                {!numGoals && (
                     <>
                         <h2 className='title'>Enter Objective Function</h2>
                         <RadioGroup
@@ -204,11 +200,11 @@ function InputPage() {
                         <TextField
                             type="text"
                             variant="outlined"
-                            value={row[variables]}
+                            value={row[numVariables]}
                             onChange={(e) => {
                                 let inputValue = handleNumberChange(e.target.value);
                                 const newConstraints = [...constraintsCoefficientsMatrix];
-                                newConstraints[rowIndex][variables] = inputValue === "" ? "0" : inputValue;
+                                newConstraints[rowIndex][numVariables] = inputValue === "" ? "0" : inputValue;
                                 setConstraintsMatrix(newConstraints);
                             }}
                             label={<InlineMath>{'\\text{RHS}'}</InlineMath>}
@@ -268,11 +264,11 @@ function InputPage() {
                                                     <MenuItem value=">=">≥</MenuItem>
                                                     <MenuItem value="=">=</MenuItem>
                                                 </Select>
-                                                <TextField type="text" variant="outlined" value={row[variables]}
+                                                <TextField type="text" variant="outlined" value={row[numVariables]}
                                                            onChange={(e) => {
                                                                let inputValue = handleNumberChange(e.target.value);
                                                                const newGoals = [...goalsCoefficientsMatrix];
-                                                               newGoals[rowIndex][variables] = inputValue === "" ? "0" : inputValue;
+                                                               newGoals[rowIndex][numVariables] = inputValue === "" ? "0" : inputValue;
                                                                setGoalsMatrix(newGoals);
                                                            }}
                                                            label={<InlineMath>{'\\text{RHS}'}</InlineMath>}
@@ -287,7 +283,7 @@ function InputPage() {
                     </Droppable>
                 </DragDropContext>
 
-                {hasGEQorEQ && !goalsNum && (
+                {hasGEQorEQ && !numGoals && (
                     <FormControl fullWidth sx={{marginTop: 2}}>
                         <InputLabel>Choose Method</InputLabel>
                         <Select value={method} onChange={(e) => setMethod(e.target.value)} variant='outlined' label={"Choose Method"}>
