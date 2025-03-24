@@ -1,6 +1,6 @@
 from sympy import Matrix, Symbol, latex
 
-from .enums import RelationOperator, ArtificialSolutionMethod
+from .enums import RelationOperator, ArtificialSolutionMethod, SimplexTerminationStatus
 from .engine import SimplexEngine
 from .util import compare_expressions
 
@@ -32,6 +32,7 @@ class SimplexSolver:
         self.penalized_vars: list[tuple[int, int, Symbol]] = []
         self.symbols_in_z_rows: list[Symbol] = []
         self.z_rows_symbols: list[Symbol] = []
+        self.last_termination_status: SimplexTerminationStatus | None = None
         self.result: dict = {}
 
 
@@ -47,17 +48,19 @@ class SimplexSolver:
                     self.__init_two_phase()
         artificial_vars_syms = [a[1] for a in self.artificial_vars]
 
-        simplex_engine = SimplexEngine(self.objective_function_coefficients_vector,
-                                       self.symbols_in_z_rows,
-                                       self.aug_constraints_coefficients_matrix,
-                                       self.vars,
-                                       self.basic_vars,
-                                       self.is_maximization,
-                                       self.steps,
-                                       self.z_rows_symbols,
-                                       artificial_vars_syms)
-        simplex_engine.reduce()
-        self.__build_result(simplex_engine)
+        if self.last_termination_status != SimplexTerminationStatus.INFEASIBLE:
+            simplex_engine = SimplexEngine(self.objective_function_coefficients_vector,
+                                           self.symbols_in_z_rows,
+                                           self.aug_constraints_coefficients_matrix,
+                                           self.vars,
+                                           self.basic_vars,
+                                           self.is_maximization,
+                                           self.steps,
+                                           self.z_rows_symbols,
+                                           artificial_vars_syms)
+            simplex_engine.reduce()
+            self.__build_result(simplex_engine)
+            self.__build_final_comment()
 
 
     def __standardize_z_rows(self):
@@ -122,15 +125,20 @@ class SimplexSolver:
         simplex_engine.reduce()
         self.aug_constraints_coefficients_matrix = simplex_engine.m
         self.basic_vars = simplex_engine.x_bv
-
-        # Remove artificial columns (column drop)
-        for a in self.artificial_vars:
-            col_index = self.vars.index(a[1])
-            self.vars.remove(a[1])
-            self.aug_constraints_coefficients_matrix.col_del(col_index)
-            self.objective_function_coefficients_vector.col_del(col_index)
-
+        self.last_termination_status = simplex_engine.termination_status
         self.steps.pop()
+
+        if simplex_engine.termination_status == SimplexTerminationStatus.INFEASIBLE:
+            self.__build_result(simplex_engine)
+            self.__build_final_comment()
+
+        else:
+            # Remove artificial columns (column drop)
+            for a in self.artificial_vars:
+                col_index = self.vars.index(a[1])
+                self.vars.remove(a[1])
+                self.aug_constraints_coefficients_matrix.col_del(col_index)
+                self.objective_function_coefficients_vector.col_del(col_index)
 
 
     def __standardize_coeff(self):
@@ -263,8 +271,6 @@ class SimplexSolver:
         else:
             self.__build_single_objective_result(simplex_engine)
 
-        self.__build_final_comment()
-
 
     def __build_goals_result(self, simplex_engine: SimplexEngine):
         goals_satisfied = []
@@ -317,20 +323,22 @@ class SimplexSolver:
 
     def __build_final_comment(self):
         comment = f"Status: {self.result["status"].value}\n"
-        if self.aug_goals_coefficients_matrix:
-            if self.result["goalsSatisfied"]:
-                comment += "Goals satisfied: " + ", ".join(
-                    map(lambda g: f"${latex(g)}$", self.result["goalsSatisfied"])) + "\n"
-            if self.result["goalsUnsatisfied"]:
-                comment += "Goals unsatisfied: " + ", ".join(map(lambda g: f"${latex(g)}$", self.result["goalsUnsatisfied"])) + "\n"
-        else:
-            comment += f"${self.z_rows_symbols[0]} = {self.result["finalObjectiveFunctionValue"]}$" + "\n"
 
-        comment += "At (" + ", ".join([f"$x_{i}$" for i in range(1, len(self.restricted) + 1)]) + ") $=$ (" \
+        if self.result["status"] != SimplexTerminationStatus.INFEASIBLE:
+            if self.aug_goals_coefficients_matrix:
+                if self.result["goalsSatisfied"]:
+                    comment += "Goals satisfied: " + ", ".join(
+                        map(lambda g: f"${latex(g)}$", self.result["goalsSatisfied"])) + "\n"
+                if self.result["goalsUnsatisfied"]:
+                    comment += "Goals unsatisfied: " + ", ".join(
+                        map(lambda g: f"${latex(g)}$", self.result["goalsUnsatisfied"])) + "\n"
+            else:
+                if self.result["status"] != SimplexTerminationStatus.INFEASIBLE:
+                    comment += f"${self.z_rows_symbols[0]} = {self.result["finalObjectiveFunctionValue"]}$" + "\n"
+            comment += "At (" + ", ".join([f"$x_{i}$" for i in range(1, len(self.restricted) + 1)]) + ") $=$ (" \
                 + ", ".join(map(lambda s: f"${latex(s)}$", self.result["finalDecisionVariablesValues"])) + ")"
 
         self.result["steps"][-1]["comment"] = comment
-        print(comment)
 
 
     @staticmethod

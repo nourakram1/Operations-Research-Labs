@@ -17,6 +17,7 @@ class SimplexEngine:
         self.z_rows_symbols = z_rows_symbols
         self.artificial_vars = artificial_vars
         self.step_cnt = 0
+        self.termination_status : SimplexTerminationStatus | None = None
 
 
     def __make_consistent(self) -> None:
@@ -171,12 +172,16 @@ class SimplexEngine:
 
 
     def __infinite_solutions(self) -> bool:
-        return any((self.z_rows[i, j] == 0 and self.x[i] not in self.x_bv[i]
-                    for j in range(self.z_rows.cols - 1)) for i in range(self.z_rows.rows))
+        return any(all(self.z_rows[i, j] == 0 for i in range(self.z_rows.rows))
+                   for j in range(self.z_rows.cols - 1) if self.x[j] not in self.x_bv and self.__can_enter(j))
 
 
     def __infeasible(self) -> bool:
         return any(self.m[self.x_bv.index(a), -1] > 0 for a in self.artificial_vars if a in self.x_bv)
+
+
+    def __can_enter(self, col_index: int) -> bool:
+        return not all(self.m[i, col_index] <= 0 for i in range(self.m.rows))
 
 
     def reduce(self) -> None:
