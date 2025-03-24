@@ -1,20 +1,21 @@
 from sympy import Matrix, Symbol, latex, Expr, Add, sign
 from .util import sort_expression_arr, compare_expressions
-
+from .enums import SimplexTerminationStatus
 
 class SimplexEngine:
     def __init__(self, z_rows: Matrix, symbols_in_z_rows: list[Symbol | None], m: Matrix, x: list[Symbol],
                  x_bv: list[Symbol],
-                 is_maximization: bool, steps: list[dict], z_rows_symbols: list[Symbol]) -> None:
+                 is_maximization: bool, steps: list[dict], z_rows_symbols: list[Symbol],
+                 artificial_vars: list[Symbol] | None = None) -> None:
         self.z_rows = z_rows
         self.symbols_in_z_rows = symbols_in_z_rows
         self.x_bv = x_bv
         self.x = x
         self.m = m
         self.is_max = is_maximization
-        self.is_optimal: bool = False
         self.steps = steps
         self.z_rows_symbols = z_rows_symbols
+        self.artificial_vars = artificial_vars
         self.step_cnt = 0
 
 
@@ -150,6 +151,34 @@ class SimplexEngine:
         return comment
 
 
+    def __infer_termination_status(self) -> None:
+        self.termination_status : SimplexTerminationStatus = \
+                                  SimplexTerminationStatus.DEGENERATE if self.__degenerate() \
+                             else SimplexTerminationStatus.INFEASIBLE if self.__infeasible() \
+                             else SimplexTerminationStatus.INFINITE_SOLUTIONS if self.__infinite_solutions() \
+                             else SimplexTerminationStatus.UNBOUNDED if self.__unbounded() \
+                             else SimplexTerminationStatus.OPTIMAL
+
+
+    def __degenerate(self) -> bool:
+        return any(free_term == 0 for free_term in self.m.col(-1))
+
+
+    def __unbounded(self) -> bool:
+        entering_var = self.__find_entering_variable()
+        leaving_var = self.__find_leaving_variable(entering_var)
+        return entering_var != -1 and leaving_var == -1
+
+
+    def __infinite_solutions(self) -> bool:
+        return any((self.z_rows[i, j] == 0 and self.x[i] not in self.x_bv[i]
+                    for j in range(self.z_rows.cols - 1)) for i in range(self.z_rows.rows))
+
+
+    def __infeasible(self) -> bool:
+        return any(self.m[self.x_bv.index(a), -1] > 0 for a in self.artificial_vars if a in self.x_bv)
+
+
     def reduce(self) -> None:
         self.__push_step(comment="Initial simplex tableau", cnt_step=False)
         self.__make_consistent()
@@ -163,7 +192,7 @@ class SimplexEngine:
                 self.__pivot(leaving_var, entering_var)
                 entering_var: int = self.__find_entering_variable()
             else:
-                self.is_optimal = False
                 break
-        self.is_optimal = True
+
+        self.__infer_termination_status()
         self.__push_step()

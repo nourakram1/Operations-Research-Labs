@@ -10,3 +10,11 @@ class RelationOperator(Enum):
     EQU = "="
     LEQ = "<="
     GEQ = ">="
+
+
+class SimplexTerminationStatus(Enum):
+    DEGENERATE = "Degeneracy"
+    INFEASIBLE = "Infeasible"
+    INFINITE_SOLUTIONS = "Infinite solutions"
+    UNBOUNDED = "Unbounded"
+    OPTIMAL = "Optimal"

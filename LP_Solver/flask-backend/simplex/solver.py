@@ -45,6 +45,7 @@ class SimplexSolver:
                     self.__init_big_m()
                 case ArtificialSolutionMethod.TWO_PHASE:
                     self.__init_two_phase()
+        artificial_vars_syms = [a[1] for a in self.artificial_vars]
 
         simplex_engine = SimplexEngine(self.objective_function_coefficients_vector,
                                        self.symbols_in_z_rows,
@@ -53,7 +54,8 @@ class SimplexSolver:
                                        self.basic_vars,
                                        self.is_maximization,
                                        self.steps,
-                                       self.z_rows_symbols)
+                                       self.z_rows_symbols,
+                                       artificial_vars_syms)
         simplex_engine.reduce()
         self.__build_result(simplex_engine)
 
@@ -63,10 +65,10 @@ class SimplexSolver:
             self.__standardize_goal_programming_z_rows()
         else:
             self.z_rows_symbols = [Symbol('z')]
-            self.__standardize_single_objective_simplex_z_rows()
+            self.__standardize_single_objective_z_rows()
 
 
-    def __standardize_single_objective_simplex_z_rows(self):
+    def __standardize_single_objective_z_rows(self):
          self.objective_function_coefficients_vector *= -1
          self.objective_function_coefficients_vector = self.objective_function_coefficients_vector.row_join(Matrix([
             [0] * (self.aug_constraints_coefficients_matrix.cols - self.objective_function_coefficients_vector.cols)
@@ -115,7 +117,8 @@ class SimplexSolver:
                                        self.basic_vars,
                                        False,
                                        self.steps,
-                                       [Symbol('r')])
+                                       [Symbol('r')],
+                                       [a[1] for a in self.artificial_vars])
         simplex_engine.reduce()
         self.aug_constraints_coefficients_matrix = simplex_engine.m
         self.basic_vars = simplex_engine.x_bv
@@ -169,7 +172,7 @@ class SimplexSolver:
                      + [a[1] for a in self.artificial_vars]
 
         # Add basic variables
-        self.basic_vars += [p[2] for p in list(filter(lambda pv: pv[1] > 0, self.penalized_vars))]    \
+        self.basic_vars += [p[2] for p in self.penalized_vars if p[1] > 0]    \
                            + [s[1] for s in slack_vars]           \
                            + [a[1] for a in self.artificial_vars]
 
@@ -253,13 +256,14 @@ class SimplexSolver:
 
     def __build_result(self, simplex_engine: SimplexEngine) -> None:
         self.result["steps"] = self.steps
-        self.result["isOptimal"] = simplex_engine.is_optimal
-        self.__build__optimal_deci_vars_vals(simplex_engine)
+        self.result["status"] = simplex_engine.termination_status
+        self.__build__final_deci_vars_vals(simplex_engine)
         if self.aug_goals_coefficients_matrix:
             self.__build_goals_result(simplex_engine)
         else:
-            self.__build_standard_result(simplex_engine)
-        self.__build_final_comment(simplex_engine)
+            self.__build_single_objective_result(simplex_engine)
+
+        self.__build_final_comment()
 
 
     def __build_goals_result(self, simplex_engine: SimplexEngine):
@@ -282,16 +286,16 @@ class SimplexSolver:
         return True
 
 
-    def __build_standard_result(self, simplex_engine: SimplexEngine):
-        self.__build__optimal_obj_func_val(simplex_engine)
+    def __build_single_objective_result(self, simplex_engine: SimplexEngine):
+        self.__build__final_obj_func_val(simplex_engine)
 
 
-    def __build__optimal_obj_func_val(self, simplex_engine: SimplexEngine):
+    def __build__final_obj_func_val(self, simplex_engine: SimplexEngine):
         se_cols = simplex_engine.m.cols
-        self.result["optimalObjectiveFunctionValue"] = simplex_engine.z_rows[0, se_cols - 1]
+        self.result["finalObjectiveFunctionValue"] = simplex_engine.z_rows[0, se_cols - 1]
 
 
-    def __build__optimal_deci_vars_vals(self, simplex_engine: SimplexEngine):
+    def __build__final_deci_vars_vals(self, simplex_engine: SimplexEngine):
         se_cols = simplex_engine.m.cols
         sol_list = [0 for _ in self.restricted]
 
@@ -308,11 +312,11 @@ class SimplexSolver:
                 row_index = simplex_engine.x_bv.index(urv_neg_symbol)
                 sol_list[urv_index] = -simplex_engine.m[row_index, se_cols - 1]
 
-        self.result["optimalDecisionVariablesValues"] = sol_list
+        self.result["finalDecisionVariablesValues"] = sol_list
 
 
-    def __build_final_comment(self, simplex_engine: SimplexEngine):
-        comment = ""
+    def __build_final_comment(self):
+        comment = f"Status: {self.result["status"].value}\n"
         if self.aug_goals_coefficients_matrix:
             if self.result["goalsSatisfied"]:
                 comment += "Goals satisfied: " + ", ".join(
@@ -320,12 +324,11 @@ class SimplexSolver:
             if self.result["goalsUnsatisfied"]:
                 comment += "Goals unsatisfied: " + ", ".join(map(lambda g: f"${latex(g)}$", self.result["goalsUnsatisfied"])) + "\n"
         else:
-            comment += f"Optimal solution found at ${self.z_rows_symbols[0]} = {self.result["optimalObjectiveFunctionValue"]}$" + "\n" \
-                if simplex_engine.is_optimal else "Problem is infeasible\n"
+            comment += f"${self.z_rows_symbols[0]} = {self.result["finalObjectiveFunctionValue"]}$" + "\n"
 
-        if simplex_engine.is_optimal:
-            comment += "Where (" + ", ".join([f"$x_{i}$" for i in range(1, len(self.restricted) + 1)]) + ") $=$ (" \
-                    + ", ".join(map(lambda s: f"${latex(s)}$", self.result["optimalDecisionVariablesValues"])) + ")"
+        comment += "At (" + ", ".join([f"$x_{i}$" for i in range(1, len(self.restricted) + 1)]) + ") $=$ (" \
+                + ", ".join(map(lambda s: f"${latex(s)}$", self.result["finalDecisionVariablesValues"])) + ")"
+
         self.result["steps"][-1]["comment"] = comment
         print(comment)
 

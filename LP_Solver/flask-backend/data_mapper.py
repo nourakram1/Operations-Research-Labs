@@ -72,13 +72,13 @@ class Marshaller:
                 }
                 for step in result["steps"]
             ],
-            "isOptimal": result["isOptimal"],
-            "optimalDecisionVariablesValues": [latex(val) for val in result["optimalDecisionVariablesValues"]]
+            "status": result["status"].value,
+            "finalDecisionVariablesValues": [latex(val) for val in result["finalDecisionVariablesValues"]]
         }
         if result.get("goalsSatisfied"):
             r["goalsSatisfied"] = [latex(goal) for goal in result.get("goalsSatisfied", [])]
         else:
-            r["optimalObjectiveFunctionValue"] =  latex(result["optimalObjectiveFunctionValue"])
+            r["finalObjectiveFunctionValue"] =  latex(result["finalObjectiveFunctionValue"])
 
         return r
 
