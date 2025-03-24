@@ -7,6 +7,7 @@ from simplex.solver import SimplexSolver
 app = Flask(__name__)
 CORS(app)
 
+
 @app.route('/solve', methods=['POST'])
 def solve():
     try:
@@ -28,6 +29,7 @@ def solve():
         return jsonify({"error": "Invalid input", "details": err.messages}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=8080)

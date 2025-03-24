@@ -36,6 +36,7 @@ function SolvePage() {
   // Prepare data for SimplexTableau
   const simplexData = {
     variables: step.variables.concat('\\text{Solution}'), // Header row
+    breakIndex: step.zRowsSymbols.length,
     basicVariables: step.zRowsSymbols.concat(step.basicVariables), // First column (basic variables)
     tableau: step.simplexMatrix, // Matrix with first column
     enteringVariable: step.enteringVariableIndex, // Column index for highlighting
@@ -43,7 +44,7 @@ function SolvePage() {
   }
   return (
     <MathJaxContext version={3} config={config}>
-      <Card sx={{ width: 1000, margin: "auto", padding: 3 }}>
+      <Card sx={{ width: 1000, margin: "auto", padding: 3, borderRadius: 4, boxShadow: "0px 0px 20px rgba(0, 0, 0, 0.3)" }}>
       <CardContent>
         <h2 className='title'>Solution</h2>
 

@@ -2,6 +2,7 @@ from sympy import Matrix, Symbol, latex, Expr, Add, sign
 from .util import sort_expression_arr, compare_expressions
 from .enums import SimplexTerminationStatus
 
+
 class SimplexEngine:
     def __init__(self, z_rows: Matrix, symbols_in_z_rows: list[Symbol | None], m: Matrix, x: list[Symbol],
                  x_bv: list[Symbol],

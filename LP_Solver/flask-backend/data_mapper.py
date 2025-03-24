@@ -56,6 +56,7 @@ class Marshaller:
         print(simplex_input)
         return simplex_input
 
+
     @staticmethod
     def convert_output_data(result):
         print("Simplex result:")
@@ -73,11 +74,13 @@ class Marshaller:
                 for step in result["steps"]
             ],
             "status": result["status"].value,
-            "finalDecisionVariablesValues": [latex(val) for val in result["finalDecisionVariablesValues"]]
         }
+        if result.get("finalDecisionVariablesValues"):
+            r["finalDecisionVariablesValues"] = [latex(val) for val in result["finalDecisionVariablesValues"]]
+
         if result.get("goalsSatisfied"):
             r["goalsSatisfied"] = [latex(goal) for goal in result.get("goalsSatisfied", [])]
-        else:
+        elif result.get("finalObjectiveFunctionValue"):
             r["finalObjectiveFunctionValue"] =  latex(result["finalObjectiveFunctionValue"])
 
         return r

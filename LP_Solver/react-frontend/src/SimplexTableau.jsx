@@ -1,25 +1,30 @@
 import React from "react";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
-import { InlineMath } from "react-katex";
+import {Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
+import {InlineMath} from "react-katex";
 import "katex/dist/katex.min.css";
 
 function SimplexTableau({ data }) {
   return (
-    <TableContainer component={Paper} sx={{ maxWidth: 1000, mt: 3, mb: 3, boxShadow: "none", border: "solid grey 2px" }}>
+    <TableContainer component={Paper} sx={{ maxWidth: 1000, mt: 3, mb: 3, boxShadow: "none", border: "solid grey 2px",  borderRadius: 2 }}>
       <Table>
-        <TableHead>
+        <TableHead sx={{ borderBottom: "2px solid grey" }}> {/* Line after header */}
           <TableRow>
-            <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}><InlineMath>{'\\text{Basic}'}</InlineMath></TableCell>
+            <TableCell
+              sx={{ fontWeight: "bold", textAlign: "center", borderRight: "2px solid grey" }} // Line after first column
+            >
+              <InlineMath>{'\\text{Basic}'}</InlineMath>
+            </TableCell>
             {data.variables.map((varName, i) => (
               <TableCell
                 key={i}
                 sx={{
                   fontWeight: "bold",
                   textAlign: "center",
-                  backgroundColor: i === data.enteringVariable ? "#ccffcc" : "inherit", // Highlight entering column
+                  backgroundColor: i === data.enteringVariable ? "#ccffcc" : "inherit",
+                  borderRight: i === data.variables.length - 2 ? "2px solid grey" : "inherit", // Line before last column
                 }}
               >
-              <InlineMath>{varName}</InlineMath>
+                <InlineMath>{varName}</InlineMath>
               </TableCell>
             ))}
           </TableRow>
@@ -28,15 +33,23 @@ function SimplexTableau({ data }) {
           {data.basicVariables.map((basicVar, rowIndex) => (
             <TableRow
               key={rowIndex}
-              sx={rowIndex === data.leavingVariable ? { backgroundColor: "#ffcccc" } : {}}
+              sx={{
+                backgroundColor: rowIndex === data.leavingVariable ? "#ffcccc" : "inherit",
+                borderBottom: rowIndex === data.breakIndex - 1 ? "2px solid lightgrey" : "inherit", // Line before breakIndex
+              }}
             >
-              <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}><InlineMath>{basicVar}</InlineMath></TableCell>
+              <TableCell
+                sx={{ fontWeight: "bold", textAlign: "center", borderRight: "2px solid grey" }} // Line after first column
+              >
+                <InlineMath>{basicVar}</InlineMath>
+              </TableCell>
               {data.tableau[rowIndex].map((value, colIndex) => (
                 <TableCell
                   key={colIndex}
                   sx={{
                     textAlign: "center",
                     backgroundColor: colIndex === data.enteringVariable ? "#ccffcc" : "inherit",
+                    borderRight: colIndex === data.tableau[rowIndex].length - 2 ? "2px solid grey" : "inherit", // Line before last column
                   }}
                 >
                   <InlineMath>{value}</InlineMath>

@@ -4,6 +4,7 @@ from .enums import RelationOperator, ArtificialSolutionMethod, SimplexTerminatio
 from .engine import SimplexEngine
 from .util import compare_expressions
 
+
 class SimplexSolver:
     def __init__(self,
                  objective_function_coefficients_vector: Matrix | None,
@@ -30,9 +31,10 @@ class SimplexSolver:
         self.basic_vars: list[Symbol] = []
         self.artificial_vars: list[tuple[int, Symbol]] = []
         self.penalized_vars: list[tuple[int, int, Symbol]] = []
+        self.slack_deviation_vars: list[tuple[int, Symbol]] = []
+        self.excess_deviation_vars: list[tuple[int, Symbol]] = []
         self.symbols_in_z_rows: list[Symbol] = []
         self.z_rows_symbols: list[Symbol] = []
-        self.last_termination_status: SimplexTerminationStatus | None = None
         self.result: dict = {}
 
 
@@ -40,15 +42,16 @@ class SimplexSolver:
         self.__standardize_coeff()
         self.__standardize_z_rows()
 
+        simplex_engine: SimplexEngine | None = None
+
         if self.artificial_vars:
             match self.artificial_solution_method:
                 case ArtificialSolutionMethod.BIG_M:
                     self.__init_big_m()
                 case ArtificialSolutionMethod.TWO_PHASE:
-                    self.__init_two_phase()
-        artificial_vars_syms = [a[1] for a in self.artificial_vars]
+                    simplex_engine = self.__init_two_phase()
 
-        if self.last_termination_status != SimplexTerminationStatus.INFEASIBLE:
+        if simplex_engine is None or simplex_engine.termination_status != SimplexTerminationStatus.INFEASIBLE:
             simplex_engine = SimplexEngine(self.objective_function_coefficients_vector,
                                            self.symbols_in_z_rows,
                                            self.aug_constraints_coefficients_matrix,
@@ -57,10 +60,11 @@ class SimplexSolver:
                                            self.is_maximization,
                                            self.steps,
                                            self.z_rows_symbols,
-                                           artificial_vars_syms)
+                                           [a[1] for a in self.artificial_vars])
             simplex_engine.reduce()
-            self.__build_result(simplex_engine)
-            self.__build_final_comment()
+
+        self.__build_result(simplex_engine)
+        self.__build_final_comment()
 
 
     def __standardize_z_rows(self):
@@ -112,8 +116,13 @@ class SimplexSolver:
 
     def __init_two_phase(self):
         cols = self.aug_constraints_coefficients_matrix.cols
-        num_artificial_vars = len(self.artificial_vars)
-        intermediate_z = Matrix([[0] * (cols - num_artificial_vars - 1) + [-1] * num_artificial_vars + [0]])
+        intermediate_z = [[0] * cols]
+
+        for a in self.artificial_vars:
+            col_index = self.vars.index(a[1])
+            intermediate_z[0][col_index] = -1
+        intermediate_z = Matrix(intermediate_z)
+
         simplex_engine = SimplexEngine(intermediate_z, [None],
                                        self.aug_constraints_coefficients_matrix,
                                        self.vars,
@@ -123,22 +132,19 @@ class SimplexSolver:
                                        [Symbol('r')],
                                        [a[1] for a in self.artificial_vars])
         simplex_engine.reduce()
-        self.aug_constraints_coefficients_matrix = simplex_engine.m
-        self.basic_vars = simplex_engine.x_bv
-        self.last_termination_status = simplex_engine.termination_status
-        self.steps.pop()
 
-        if simplex_engine.termination_status == SimplexTerminationStatus.INFEASIBLE:
-            self.__build_result(simplex_engine)
-            self.__build_final_comment()
-
-        else:
+        if simplex_engine.termination_status != SimplexTerminationStatus.INFEASIBLE:
             # Remove artificial columns (column drop)
+            self.aug_constraints_coefficients_matrix = simplex_engine.m
+            self.basic_vars = simplex_engine.x_bv
+            self.steps.pop()
             for a in self.artificial_vars:
                 col_index = self.vars.index(a[1])
-                self.vars.remove(a[1])
+                self.vars.pop(col_index)
                 self.aug_constraints_coefficients_matrix.col_del(col_index)
                 self.objective_function_coefficients_vector.col_del(col_index)
+
+        return simplex_engine
 
 
     def __standardize_coeff(self):
@@ -150,39 +156,37 @@ class SimplexSolver:
         excess_vars, self.artificial_vars, slack_vars = self.__create_constraints_vars()
 
         # Create penalized and favored variables
-        self.penalized_vars, favored_vars = self.__create_deviation_vars()
+        self.penalized_vars, self.slack_deviation_vars, self.excess_deviation_vars = self.__create_deviation_vars()
 
         # Append excess variables columns
         for e in excess_vars:
             self.__append_constraint_var_col(e[0], -1)
 
-        # Append favored variables columns
-        for f in favored_vars:
-            self.__append_deviation_var_col(f[0], f[1])
+        # Append excess deviation variables columns
+        for edv in self.excess_deviation_vars:
+            self.__append_deviation_var_col(edv[0], -1)
 
-        # Append penalized variables columns
-        for p in self.penalized_vars:
-            self.__append_deviation_var_col(p[0], p[1])
+        # Append slack deviation variables columns
+        for sdv in self.slack_deviation_vars:
+            self.__append_deviation_var_col(sdv[0], 1)
 
-        # Append slack variables columns
-        for s in slack_vars:
-            self.__append_constraint_var_col(s[0], 1)
+        # Sort basic constraints variables by their row
+        basic_constraints_vars = slack_vars + self.artificial_vars
+        basic_constraints_vars.sort(key=lambda v: v[0])
 
-        # Append artificial variables columns
-        for a in self.artificial_vars:
-            self.__append_constraint_var_col(a[0], 1)
+        # Append basic constraints variables columns
+        for bcv in basic_constraints_vars:
+            self.__append_constraint_var_col(bcv[0], 1)
 
-        # Add deviation and constraints variables to vars list
-        self.vars += [e[1] for e in excess_vars]            \
-                     + [f[2] for f in favored_vars]         \
-                     + [p[2] for p in self.penalized_vars]  \
-                     + [s[1] for s in slack_vars]           \
-                     + [a[1] for a in self.artificial_vars]
+        # Add all variables to vars list
+        self.vars += [e[1] for e in excess_vars]                     \
+                  + [edv[1] for edv in self.excess_deviation_vars]   \
+                  + [sdv[1] for sdv in self.slack_deviation_vars]    \
+                  + [bcv[1] for bcv in basic_constraints_vars]       \
 
-        # Add basic variables
-        self.basic_vars += [p[2] for p in self.penalized_vars if p[1] > 0]    \
-                           + [s[1] for s in slack_vars]           \
-                           + [a[1] for a in self.artificial_vars]
+        # Add basic variables to basic_vars list
+        self.basic_vars += [sdv[1] for sdv in self.slack_deviation_vars] \
+                        + [bcv[1] for bcv in basic_constraints_vars]
 
 
     def __init_decision_vars(self) -> None:
@@ -225,23 +229,28 @@ class SimplexSolver:
 
 
     def __create_deviation_vars(self) -> tuple[list[tuple[int, int, Symbol]],
-                                               list[tuple[int, int, Symbol]]]:
+                                               list[tuple[int, Symbol]],
+                                               list[tuple[int, Symbol]]]:
         penalized_vars: list[tuple[int, int, Symbol]] = []
-        favored_vars: list[tuple[int, int, Symbol]] = []
+        slack_deviation_vars: list[tuple[int, Symbol]] = []
+        excess_deviation_vars: list[tuple[int, Symbol]] = []
+
         if self.aug_goals_coefficients_matrix:
             for idx, relation in enumerate(self.goals_relations):
+                slack_deviation_var = Symbol(f"y_{idx + 1}^-")
+                excess_deviation_var = Symbol(f"y_{idx + 1}^+")
+                slack_deviation_vars.append((idx, slack_deviation_var))
+                excess_deviation_vars.append((idx, excess_deviation_var))
                 match relation:
                     case RelationOperator.GEQ:
-                        penalized_vars.append((idx, 1, Symbol(f"y_{idx + 1}^-")))
-                        favored_vars.append((idx, -1, Symbol(f"y_{idx + 1}^+")))
+                        penalized_vars.append((idx, 1, slack_deviation_var))
                     case RelationOperator.EQU:
-                        penalized_vars.append((idx, 1, Symbol(f"y_{idx + 1}^-")))
-                        penalized_vars.append((idx, -1, Symbol(f"y_{idx + 1}^+")))
+                        penalized_vars.append((idx, 1, slack_deviation_var))
+                        penalized_vars.append((idx, -1, excess_deviation_var))
                     case RelationOperator.LEQ:
-                        favored_vars.append((idx, 1, Symbol(f"y_{idx + 1}^-")))
-                        penalized_vars.append((idx, -1, Symbol(f"y_{idx + 1}^+")))
+                        penalized_vars.append((idx, -1, excess_deviation_var))
 
-        return penalized_vars, favored_vars
+        return penalized_vars, slack_deviation_vars, excess_deviation_vars
 
 
     def __append_deviation_var_col(self, var_row_index: int, sign: int):
@@ -265,16 +274,18 @@ class SimplexSolver:
     def __build_result(self, simplex_engine: SimplexEngine) -> None:
         self.result["steps"] = self.steps
         self.result["status"] = simplex_engine.termination_status
-        self.__build__final_deci_vars_vals(simplex_engine)
-        if self.aug_goals_coefficients_matrix:
-            self.__build_goals_result(simplex_engine)
-        else:
-            self.__build_single_objective_result(simplex_engine)
+        if simplex_engine.termination_status != SimplexTerminationStatus.INFEASIBLE:
+            self.__build__final_deci_vars_vals(simplex_engine)
+            if self.aug_goals_coefficients_matrix:
+                self.__build_goals_result(simplex_engine)
+            else:
+                self.__build_single_objective_result(simplex_engine)
 
 
     def __build_goals_result(self, simplex_engine: SimplexEngine):
         goals_satisfied = []
         goals_unsatisfied = []
+
         for i in range(len(self.z_rows_symbols)):
             if self.__is_satisfied(i, simplex_engine):
                 goals_satisfied.append(self.z_rows_symbols[i])
