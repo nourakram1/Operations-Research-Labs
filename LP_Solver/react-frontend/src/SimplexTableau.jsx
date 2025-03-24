@@ -4,6 +4,7 @@ import {InlineMath} from "react-katex";
 import "katex/dist/katex.min.css";
 
 function SimplexTableau({ data }) {
+  console.log(data.breakIndex);
   return (
     <TableContainer component={Paper} sx={{ maxWidth: 1000, mt: 3, mb: 3, boxShadow: "none", border: "solid grey 3px",  borderRadius: 2 }}>
       <Table>

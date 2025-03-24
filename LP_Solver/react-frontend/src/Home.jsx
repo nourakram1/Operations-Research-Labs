@@ -17,6 +17,12 @@ function HomePage() {
   } = useLP();
 
   useEffect(() => {
+    setNumVariables(2);
+    setNumConstraints(1);
+    setNumGoals(0);
+  },[]);
+
+  useEffect(() => {
           setObjective([Array(numVariables).fill(0)]);
           setRestricted(Array(numVariables).fill(true));
           setConstraintsMatrix(Array.from({ length: numConstraints }, () => Array(numVariables + 1).fill(0)));

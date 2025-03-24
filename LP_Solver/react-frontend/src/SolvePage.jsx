@@ -96,12 +96,21 @@ function SolvePage() {
         {/* Restart Button */}
         <Button
           variant="contained"
+          color="secondary"
+          fullWidth
+          sx={{ marginTop: 2 }}
+          onClick={() => navigate("/input")}
+        >
+          Edit Problem
+        </Button>
+        <Button
+          variant="contained"
           color="primary"
           fullWidth
           sx={{ marginTop: 2 }}
           onClick={() => navigate("/")}
         >
-          Start Over
+          New Problem
         </Button>
       </CardContent>
     </Card>
