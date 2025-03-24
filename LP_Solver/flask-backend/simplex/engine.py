@@ -155,34 +155,51 @@ class SimplexEngine:
 
     def __infer_termination_status(self) -> None:
         self.termination_status : SimplexTerminationStatus = \
-                                  SimplexTerminationStatus.DEGENERATE if self.__degenerate() \
-                             else SimplexTerminationStatus.INFEASIBLE if self.__infeasible() \
-                             else SimplexTerminationStatus.INFINITE_SOLUTIONS if self.__infinite_solutions() \
+                                  SimplexTerminationStatus.INFEASIBLE if self.__infeasible() \
+                             else SimplexTerminationStatus.DEGENERATE if self.__degenerate() \
                              else SimplexTerminationStatus.UNBOUNDED if self.__unbounded() \
+                             else SimplexTerminationStatus.INFINITE_SOLUTIONS if self.__infinite_solutions() \
                              else SimplexTerminationStatus.OPTIMAL
 
 
     def __degenerate(self) -> bool:
-        return any(free_term == 0 for free_term in self.m.col(-1))
+        return any(self.m[row, -1] == 0 for row in range(self.m.rows)
+                   if self.x_bv[row] not in self.artificial_vars)
 
 
     def __unbounded(self) -> bool:
-        entering_var = self.__find_entering_variable()
-        leaving_var = self.__find_leaving_variable(entering_var)
-        return entering_var != -1 and leaving_var == -1
+        return any(not self.__can_leave(self.__can_enter(i))
+                   for i in range(self.z_rows.rows) if self.__can_enter(i))
 
 
     def __infinite_solutions(self) -> bool:
         return any(all(self.z_rows[i, j] == 0 for i in range(self.z_rows.rows))
-                   for j in range(self.z_rows.cols - 1) if self.x[j] not in self.x_bv and self.__can_enter(j))
+                   for j in range(self.z_rows.cols - 1) if self.x[j] not in self.x_bv and self.__can_leave(j))
 
 
     def __infeasible(self) -> bool:
         return any(self.m[self.x_bv.index(a), -1] > 0 for a in self.artificial_vars if a in self.x_bv)
 
 
-    def __can_enter(self, col_index: int) -> bool:
-        return not all(self.m[i, col_index] <= 0 for i in range(self.m.rows))
+    def __can_enter(self, row_index: int) -> int:
+        """
+        Returns the index of the column containing a non-basic variable
+        with non-positive coefficient in case of maximization or
+        with non-negative coefficient in case of minimization
+        such that in the column of the non-basic variables, all rows before row_index contain zeros or
+        -1 otherwise
+        """
+        return next((j for j in range(self.z_rows.cols - 1)
+                     if self.x[j] not in self.x_bv
+                     and (self.z_rows[row_index, j] <= 0 if self.is_max else self.z_rows[row_index, j] >= 0)
+                     and self.__more_prior(row_index, j)), -1)
+
+
+    def __can_leave(self, col_index: int) -> bool:
+        """
+        Returns true if one basic variable can leave in the specified column.
+        """
+        return any(self.m[i, col_index] > 0 for i in range(self.m.rows))
 
 
     def reduce(self) -> None:

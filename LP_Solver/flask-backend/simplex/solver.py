@@ -139,6 +139,7 @@ class SimplexSolver:
             self.basic_vars = simplex_engine.x_bv
             self.steps.pop()
             for a in self.artificial_vars:
+                if a[1] in simplex_engine.x_bv: continue
                 col_index = self.vars.index(a[1])
                 self.vars.pop(col_index)
                 self.aug_constraints_coefficients_matrix.col_del(col_index)
