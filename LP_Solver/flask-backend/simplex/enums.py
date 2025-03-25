@@ -11,6 +11,11 @@ class RelationOperator(Enum):
     LEQ = "<="
     GEQ = ">="
 
+    def negate(self):
+        return RelationOperator.GEQ if self == RelationOperator.LEQ         \
+               else RelationOperator.LEQ if self == RelationOperator.GEQ    \
+               else RelationOperator.EQU
+
 
 class SimplexTerminationStatus(Enum):
     DEGENERATE = "Degeneracy"

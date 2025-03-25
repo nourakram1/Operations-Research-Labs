@@ -149,6 +149,8 @@ class SimplexSolver:
 
 
     def __standardize_coeff(self):
+        self.__make_rhs_positive()
+
         # Create decision variables, add them to vars list and
         # insert new columns for unrestricted variables
         self.__init_decision_vars()
@@ -188,6 +190,20 @@ class SimplexSolver:
         # Add basic variables to basic_vars list
         self.basic_vars += [sdv[1] for sdv in self.slack_deviation_vars] \
                         + [bcv[1] for bcv in basic_constraints_vars]
+
+
+    def __make_rhs_positive(self):
+        matrices = [
+            (self.aug_constraints_coefficients_matrix, self.constraints_relations),
+        ]
+        if self.aug_goals_coefficients_matrix:
+            matrices.append((self.aug_goals_coefficients_matrix, self.goals_relations))
+
+        for i in range(self.aug_constraints_coefficients_matrix.rows):
+            for matrix, relations in matrices:
+                if matrix[i, -1] < 0:
+                    matrix[i, :] = -matrix[i, :]
+                    relations[i] = relations[i].negate()
 
 
     def __init_decision_vars(self) -> None:
