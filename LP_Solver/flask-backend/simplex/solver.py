@@ -313,9 +313,9 @@ class SimplexSolver:
 
 
     def __is_satisfied(self, row_index: int, simplex_engine: SimplexEngine) -> bool:
-        return all(compare_expressions(simplex_engine.z_rows[row_index, col_index], 0,
-                                       self.z_rows_symbols[col_index] if col_index < len(self.z_rows_symbols) else None) > 0
-                                       for col_index in range(simplex_engine.z_rows.cols))
+        return all(compare_expressions(simplex_engine.z_rows[row_index, col_index], 0, self.z_rows_symbols[row_index]) <= 0
+                                       for col_index in range(simplex_engine.z_rows.cols - 1) if simplex_engine.x[col_index] not in simplex_engine.x_bv) \
+               and simplex_engine.z_rows[row_index, -1] == 0
 
 
     def __build_single_objective_result(self, simplex_engine: SimplexEngine):
