@@ -11,7 +11,7 @@ function SimplexTableau({ data }) {
         <TableHead sx={{ borderBottom: "3px solid grey" }}> {/* Line after header */}
           <TableRow>
             <TableCell
-              sx={{ fontWeight: "bold", textAlign: "center", borderRight: "3px solid grey" }} // Line after first column
+              sx={{ fontSize: 16, fontWeight: "bold", textAlign: "center", borderRight: "3px solid grey" }} // Line after first column
             >
               <InlineMath>{'\\text{Basic}'}</InlineMath>
             </TableCell>
@@ -19,6 +19,7 @@ function SimplexTableau({ data }) {
               <TableCell
                 key={i}
                 sx={{
+                    fontSize: 16,
                   fontWeight: "bold",
                   textAlign: "center",
                   backgroundColor: i === data.enteringVariable ? "#ccffcc" : "inherit",
@@ -40,7 +41,7 @@ function SimplexTableau({ data }) {
               }}
             >
               <TableCell
-                sx={{ fontWeight: "bold", textAlign: "center", borderRight: "3px solid grey" }} // Line after first column
+                sx={{ fontSize: 16, fontWeight: "bold", textAlign: "center", borderRight: "3px solid grey" }} // Line after first column
               >
                 <InlineMath>{basicVar}</InlineMath>
               </TableCell>
@@ -48,6 +49,7 @@ function SimplexTableau({ data }) {
                 <TableCell
                   key={colIndex}
                   sx={{
+                      fontSize: 16,
                     textAlign: "center",
                     backgroundColor: colIndex === data.enteringVariable ? "#ccffcc" : "inherit",
                     borderRight: colIndex === data.tableau[rowIndex].length - 2 ? "3px solid grey" : "inherit", // Line before last column
