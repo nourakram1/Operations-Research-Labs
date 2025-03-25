@@ -123,7 +123,7 @@ class SimplexSolver:
             intermediate_z[0][col_index] = -1
         intermediate_z = Matrix(intermediate_z)
 
-        simplex_engine = SimplexEngine(intermediate_z, [None],
+        simplex_engine = SimplexEngine(intermediate_z, [],
                                        self.aug_constraints_coefficients_matrix,
                                        self.vars,
                                        self.basic_vars,
@@ -313,7 +313,7 @@ class SimplexSolver:
 
 
     def __is_satisfied(self, row_index: int, simplex_engine: SimplexEngine) -> bool:
-        return all(compare_expressions(simplex_engine.z_rows[row_index, col_index], 0, self.z_rows_symbols[row_index]) <= 0
+        return all(compare_expressions(simplex_engine.z_rows[row_index, col_index], 0, self.symbols_in_z_rows[row_index]) <= 0
                                        for col_index in range(simplex_engine.z_rows.cols - 1) if simplex_engine.x[col_index] not in simplex_engine.x_bv) \
                and simplex_engine.z_rows[row_index, -1] == 0
 

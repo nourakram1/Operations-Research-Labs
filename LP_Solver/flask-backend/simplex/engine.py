@@ -4,12 +4,12 @@ from .enums import SimplexTerminationStatus
 
 
 class SimplexEngine:
-    def __init__(self, z_rows: Matrix, symbols_in_z_rows: list[Symbol | None], m: Matrix, x: list[Symbol],
+    def __init__(self, z_rows: Matrix, symbols_in_z_rows: list[Symbol], m: Matrix, x: list[Symbol],
                  x_bv: list[Symbol],
                  is_maximization: bool, steps: list[dict], z_rows_symbols: list[Symbol],
                  artificial_vars: list[Symbol] | None = None) -> None:
         self.z_rows = z_rows
-        self.symbols_in_z_rows = symbols_in_z_rows
+        self.symbols_in_z_rows = symbols_in_z_rows if symbols_in_z_rows else [None] * z_rows.rows
         self.x_bv = x_bv
         self.x = x
         self.m = m
@@ -54,7 +54,7 @@ class SimplexEngine:
         num_rows, num_cols = self.z_rows.shape
 
         for row_index in range(num_rows):
-            symbol = self.symbols_in_z_rows[row_index] if self.symbols_in_z_rows else None
+            symbol = self.symbols_in_z_rows[row_index]
             for col_index in range(num_cols - 1):
                 value = self.z_rows[row_index, col_index]
                 if self.is_max:
@@ -156,9 +156,9 @@ class SimplexEngine:
     def __infer_termination_status(self) -> None:
         self.termination_status : SimplexTerminationStatus = \
                                   SimplexTerminationStatus.INFEASIBLE if self.__infeasible() \
-                             else SimplexTerminationStatus.DEGENERATE if self.__degenerate() \
                              else SimplexTerminationStatus.UNBOUNDED if self.__unbounded() \
                              else SimplexTerminationStatus.INFINITE_SOLUTIONS if self.__infinite_solutions() \
+                             else SimplexTerminationStatus.DEGENERATE if self.__degenerate() \
                              else SimplexTerminationStatus.OPTIMAL
 
 
@@ -184,14 +184,16 @@ class SimplexEngine:
     def __can_enter(self, row_index: int) -> int:
         """
         Returns the index of the column containing a non-basic variable
-        with non-positive coefficient in case of maximization or
-        with non-negative coefficient in case of minimization
+        with positive coefficient in case of maximization or
+        with negative coefficient in case of minimization
         such that in the column of the non-basic variables, all rows before row_index contain zeros or
         -1 otherwise
         """
         return next((j for j in range(self.z_rows.cols - 1)
                      if self.x[j] not in self.x_bv
-                     and (self.z_rows[row_index, j] <= 0 if self.is_max else self.z_rows[row_index, j] >= 0)
+                     and (compare_expressions(self.z_rows[row_index, j], 0, self.symbols_in_z_rows[row_index]) < 0
+                          if self.is_max
+                          else compare_expressions(self.z_rows[row_index, j], 0, self.symbols_in_z_rows[row_index]) > 0)
                      and self.__more_prior(row_index, j)), -1)
 
 
