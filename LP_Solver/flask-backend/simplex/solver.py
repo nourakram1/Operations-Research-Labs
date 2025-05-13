@@ -1,8 +1,8 @@
 from sympy import Matrix, Symbol, latex
 
-from .enums import RelationOperator, ArtificialSolutionMethod, SimplexTerminationStatus
-from .engine import SimplexEngine
-from .util import compare_expressions
+from simplex.classes import RelationOperator, ArtificialSolutionMethod, SimplexTerminationStatus
+from simplex.core import SimplexEngine
+from simplex.util import compare_expressions
 
 
 class SimplexSolver:

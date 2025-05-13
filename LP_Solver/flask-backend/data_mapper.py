@@ -1,6 +1,6 @@
 from marshmallow import Schema, fields, validate, ValidationError
 from sympy import Matrix, latex, nsimplify
-from simplex.enums import RelationOperator, ArtificialSolutionMethod
+from simplex.classes import RelationOperator, ArtificialSolutionMethod
 
 
 class SimplexSchema(Schema):

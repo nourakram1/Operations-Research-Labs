@@ -1,13 +1,14 @@
-from sympy import Matrix, Symbol, latex, Expr, Add, sign
-from .util import sort_expression_arr, compare_expressions
-from .enums import SimplexTerminationStatus
+from sympy import Matrix, Symbol
+from simplex.util import sort_expression_arr, compare_expressions
+from simplex.classes import SimplexTerminationStatus, CommentGenerator
 
 
 class SimplexEngine:
     def __init__(self, z_rows: Matrix, symbols_in_z_rows: list[Symbol], m: Matrix, x: list[Symbol],
                  x_bv: list[Symbol],
                  is_maximization: bool, steps: list[dict], z_rows_symbols: list[Symbol],
-                 artificial_vars: list[Symbol] | None = None) -> None:
+                 artificial_vars: list[Symbol] | None = None,
+                 comment_generator: CommentGenerator | None = None) -> None:
         self.z_rows = z_rows
         self.symbols_in_z_rows = symbols_in_z_rows if symbols_in_z_rows else [None] * z_rows.rows
         self.x_bv = x_bv
@@ -19,6 +20,8 @@ class SimplexEngine:
         self.artificial_vars = artificial_vars
         self.step_cnt = 0
         self.termination_status : SimplexTerminationStatus | None = None
+        self.cg = comment_generator if comment_generator is not None else CommentGenerator()
+        self.rows_symbols = [Symbol(f"R_{i + 1}") for i in range(m.rows)]
 
 
     def __make_consistent(self) -> None:
@@ -35,10 +38,10 @@ class SimplexEngine:
     def __fix_inconsistency(self, i: int, j: int) -> None:
         for k in range(self.m.rows):
             if self.m[k, j] == 1:
-                self.__push_step(comment=f"Row ${latex(self.z_rows_symbols[i])}$ is inconsistent", cnt_step=False)
+                self.__push_step(comment=self.cg.inconsistent_row(self.z_rows_symbols[i]), cnt_step=False)
                 factor = self.z_rows[i, j]
                 self.z_rows[i, :] -= factor * self.m[k, :]
-                self.__push_step(comment=self.__row_op_comment(self.z_rows_symbols[i], Symbol(f"R_{k + 1}"), factor))
+                self.__push_step(comment=self.cg.row_operation(self.z_rows_symbols[i], self.rows_symbols[k], factor))
                 return
 
 
@@ -100,20 +103,23 @@ class SimplexEngine:
 
         if pivot_element != 1:
             self.m[row, :] = self.m[row, :] / pivot_element
-            self.__push_step(comment=f"$R_{row + 1} = \\frac{"{"}R_{row + 1}{"}"}{"{"}{pivot_element}{"}"}$")
+            self.__push_step(comment=self.cg.normalize_row(self.rows_symbols[row], pivot_element))
 
-        for r in range(self.z_rows.rows):
-            factor = self.z_rows[r, col]
-            if factor == 0: continue
-            self.z_rows[r, :] -= factor * self.m[row, :]
-            self.__push_step(comment=self.__row_op_comment(self.z_rows_symbols[r], Symbol(f"R_{row + 1}"), factor))
+        # Pivot z rows
+        for target_row in range(self.z_rows.rows):
+            self.__row_op(self.z_rows, target_row, row, col, self.z_rows_symbols[target_row])
 
-        for r in range(self.m.rows):
-            if r != row:
-                factor = self.m[r, col]
-                if factor == 0: continue
-                self.m[r, :] -= factor * self.m[row, :]
-                self.__push_step(comment=self.__row_op_comment(Symbol(f"R_{r + 1}"), Symbol(f"R_{row + 1}"), factor))
+        # Pivot m rows
+        for target_row in range(self.m.rows):
+            if target_row != row:
+                self.__row_op(self.m, target_row, row, col, self.rows_symbols[target_row])
+
+
+    def __row_op(self, matrix: Matrix, target_row: int, pivot_row: int, pivot_col: int, target_row_symbol: Symbol) -> None:
+        factor = matrix[target_row, pivot_col]
+        if factor == 0: return
+        matrix[target_row, :] -= factor * self.m[pivot_row, :]
+        self.__push_step(comment=self.cg.row_operation(target_row_symbol, self.rows_symbols[pivot_row], factor))
 
 
     def __push_step(self,
@@ -136,21 +142,6 @@ class SimplexEngine:
             step["leavingVariableIndex"] = leaving_var_index
 
         self.steps.append(step)
-
-
-    @staticmethod
-    def __row_op_comment(r1: Symbol, r2: Symbol, factor: Expr) -> str:
-        multi_term = len(Add.make_args(factor)) > 1
-        sgn = sign(factor)
-        if not multi_term:
-            factor *= sgn
-        if factor == 1:
-            factor = ""
-        sgn = "+" if sgn < 0 else "-"
-        lp = "(" if multi_term else ""
-        rp = ")" if multi_term else ""
-        comment = f"${latex(r1)} = {latex(r1)} {sgn} {lp}{latex(factor)}{rp}{latex(r2)}$"
-        return comment
 
 
     def __infer_termination_status(self) -> None:
@@ -205,15 +196,15 @@ class SimplexEngine:
 
 
     def reduce(self) -> None:
-        self.__push_step(comment="Initial simplex tableau", cnt_step=False)
+        self.__push_step(comment=self.cg.initial(), cnt_step=False)
         self.__make_consistent()
 
         entering_var: int = self.__find_entering_variable()
         while entering_var != -1:
             leaving_var: int = self.__find_leaving_variable(entering_var)
             if leaving_var != -1:
-                self.__push_step(entering_var, leaving_var,
-                                 f"Entering variable ${latex(self.x[entering_var])}$ and leaving variable ${latex(self.x_bv[leaving_var])}$")
+                self.__push_step(entering_var, leaving_var, self.cg.pivot_element(self.x[entering_var],
+                                                                                  self.x_bv[leaving_var]))
                 self.__pivot(leaving_var, entering_var)
                 entering_var: int = self.__find_entering_variable()
             else:
