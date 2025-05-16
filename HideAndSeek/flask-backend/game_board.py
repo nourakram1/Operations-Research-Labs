@@ -20,4 +20,4 @@ class GameBoard:
             np.array: A 2D array representing the game board
             with Difficulty enum members in each cell.
         """
-        return np.array([[random.choice(GameBoard.choices) for _ in range(m)] for _ in range(n)])
+        return np.random.choice(GameBoard.choices, size=(n, m))
