@@ -1,20 +1,23 @@
-import numpy as np
 import random
+import numpy as np
+from difficulty import Difficulty
 
 class GameBoard:
-
-    plays = ['EASY', 'NEUTRAL', 'HARD']
-    probabilities = [1/3, 1/3, 1/3]
+    
+    choices = list(Difficulty)
     
     @staticmethod
-    def generate(n, m):
-        game_board = np.empty((n, m), dtype=object)
-        
-        for i in range(n):
-            for j in range(m):
-                play_choice = random.choices(GameBoard.plays, weights=GameBoard.probabilities, k=1)[0]
-                game_board[i, j] = play_choice
-                    
-        return game_board
-    
+    def generate(n: int, m: int) -> np.array:
+        """
+        Generates an n x m game board where each cell is randomly assigned
+        a Difficulty enum member (EASY, NEUTRAL, or HARD).
 
+        Args:
+            n (int): Number of rows.
+            m (int): Number of columns.
+
+        Returns:
+            np.array: A 2D array representing the game board
+            with Difficulty enum members in each cell.
+        """
+        return np.array([[random.choice(GameBoard.choices) for _ in range(m)] for _ in range(n)])

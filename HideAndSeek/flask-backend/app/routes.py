@@ -1,11 +1,11 @@
 import numpy as np
 from flask import Blueprint, request, jsonify
 from jsonschema import validate, ValidationError
-from app.schema import generate_game_schema, play_schema
+# from app.schema import generate_game_schema, play_schema
 from game_board import GameBoard
-from player import Player
-from game_solver import GameSolver
 from game_matrix import GameMatrix
+from game_solver import GameSolver
+from player import Player
 
 bp = Blueprint('api', __name__)
 
@@ -26,7 +26,12 @@ def generate_game():
     game_matrix = GameMatrix.generate(game_board)
     seeker_probabilities , hider_probabilities = GameSolver.solve(game_matrix)
 
-    return jsonify({'game_matrix': game_matrix.tolist(), 'game_board': game_board.tolist(), 'seeker_probabilities': seeker_probabilities.tolist(), 'hider_probabilities': hider_probabilities.tolist()}), 200
+    return jsonify({
+        'game_matrix': game_matrix.tolist(),
+        'game_board': [[cell.label for cell in row] for row in game_board],
+        'seeker_probabilities': seeker_probabilities.tolist(),
+        'hider_probabilities': hider_probabilities.tolist()
+    }), 200
 
 @bp.route('/play', methods=['POST'])
 def play():
