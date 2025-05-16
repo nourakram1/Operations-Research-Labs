@@ -1,4 +1,3 @@
-import random
 import numpy as np
 from difficulty import Difficulty
 

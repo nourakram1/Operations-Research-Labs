@@ -7,7 +7,7 @@ class GameMatrix:
         """
         Generates a square game matrix based on the difficulty levels of each cell in the game board.
 
-        Each cell in the input game_board contains a difficulty string ('EASY', 'NEUTRAL', 'HARD').
+        Each cell in the input game_board contains a difficulty EASY, NEUTRAL, HARD.
         The resulting matrix has dimensions (n*m) x (n*m), where n and m are the dimensions of game_board.
 
         For each cell i in the flattened game_board:
@@ -15,7 +15,7 @@ class GameMatrix:
         - All off-diagonal elements in row i are assigned the reward value for that difficulty.
 
         Args:
-            game_board (np.array): 2D numpy array of strings representing difficulties.
+            game_board (np.array): 2D numpy array of enums of difficulties.
 
         Returns:
             np.array: 2D numpy integer array representing the game matrix.
