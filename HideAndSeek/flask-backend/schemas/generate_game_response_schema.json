@@ -1,0 +1,29 @@
+{
+    "type": "object",
+    "properties": {
+        "game_board": {
+            "type": "array",
+            "items": {
+                "type": "array",
+                "items": {"type": "string"}
+            }
+        },
+        "game_matrix": {
+            "type": "array",
+            "items": {
+                "type": "array",
+                "items": {"type": "number"}
+            }
+        },
+        "seeker_probabilities": {
+            "type": "array",
+            "items": {"type": "number"}
+        },
+        "hider_probabilities": {
+            "type": "array",
+            "items": {"type": "number"}
+        }
+    },
+    "required": ["game_board", "game_matrix", "seeker_probabilities", "hider_probabilities"],
+    "additionalProperties": false
+}

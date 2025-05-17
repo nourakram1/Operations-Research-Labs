@@ -1,67 +1,13 @@
-generate_game_schema = {
-    "type": "object",
-    "properties": {
-        "n": {"type": "integer"},
-        "m": {"type": "integer", "default": 1}
-    },
-    "required": ["n"],
-    "additionalProperties": False
-}
+import json
+import os
 
-generate_game_response_schema = {
-    "type": "object",
-    "properties": {
-        "valid": {"type": "boolean"},
-        "game_board": {
-            "type": "array",
-            "items": {
-                "type": "array",
-                "items": {"type": "string"}
-            }
-        },
-        "game_matrix": {
-            "type": "array",
-            "items": {
-                "type": "array",
-                "items": {"type": "number"}
-            }
-        },
-        "seeker_probabilities": {
-            "type": "array",
-            "items": {"type": "number"}
-        },
-        "hider_probabilities": {
-            "type": "array",
-            "items": {"type": "number"}
-        }
-    },
-    "required": ["valid", "game_board", "game_matrix", "seeker_probabilities", "hider_probabilities"],
-    "additionalProperties": False
-}
+SCHEMA_DIR = os.path.join(os.path.dirname(__file__), '..', 'schemas')
 
-play_schema = {
-    "type": "object",
-    "properties": {
-        "n": {"type": "integer"},
-        "m": {"type": "integer", "default": 1},
-        "probabilities": {
-            "type": "array",
-            "items": {
-                "type": "number"
-            }
-        }
-    },
-    "required": ["n", "m", "probabilities"],
-    "additionalProperties": False,
-}
+def load_schema(filename):
+    with open(os.path.join(SCHEMA_DIR, filename), 'r') as f:
+        return json.load(f)
 
-play_response_schema = {
-    "type": "object",
-    "properties": {
-        "valid": {"type": "boolean"},
-        "row": {"type": "integer"},
-        "col": {"type": "integer"}
-    },
-    "required": ["valid", "row", "col"],
-    "additionalProperties": False
-}
+generate_game_schema = load_schema('generate_game_schema.json')
+play_schema = load_schema('play_schema.json')
+generate_game_response_schema = load_schema('generate_game_response_schema.json')
+play_response_schema = load_schema('play_response_schema.json')

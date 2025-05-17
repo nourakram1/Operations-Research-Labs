@@ -16,17 +16,15 @@ def generate_game():
         validate(instance=data, schema= generate_game_schema)
     except ValidationError as e:
         return jsonify({
-            'valid': False,
             'error': e.message,
             'path': list(e.path)
         }), 400
     
     game_board = GameBoard.generate(data["n"], data["m"])
     game_matrix = GameMatrix.generate(game_board)
-    seeker_probabilities , hider_probabilities = GameSolver.solve(game_matrix)
-
+    hider_probabilities = GameSolver.solve_hider_strategy(game_matrix)
+    seeker_probabilities = GameSolver.solve_seeker_strategy(game_matrix)
     response = {
-        'valid': True,
         'game_matrix': game_matrix.tolist(),
         'game_board': [[cell.label for cell in row] for row in game_board],
         'seeker_probabilities': seeker_probabilities.tolist(),
@@ -36,7 +34,6 @@ def generate_game():
         validate(instance=response, schema=generate_game_response_schema)
     except ValidationError as e:
         return jsonify({
-            'valid': False,
             'error': f"Internal response validation error: {e.message}",
             'path': list(e.path)
         }), 500
@@ -49,19 +46,17 @@ def play():
         validate(instance=data, schema = play_schema)
     except ValidationError as e:
         return jsonify({
-            'valid': False,
             'error': e.message,
             'path': list(e.path)
         }), 400
 
     i, j = Player.play(data["n"], data["m"], np.array(data["probabilities"]))
     
-    response = {'valid': True, 'row': i, 'col': j}
+    response = {'row': i, 'col': j}
     try:
         validate(instance=response, schema=play_response_schema)
     except ValidationError as e:
         return jsonify({
-            'valid': False,
             'error': f"Internal response validation error: {e.message}",
             'path': list(e.path)
         }), 500

@@ -1,0 +1,9 @@
+{
+    "type": "object",
+    "properties": {
+        "row": {"type": "integer"},
+        "col": {"type": "integer"}
+    },
+    "required": ["row", "col"],
+    "additionalProperties": false
+}
