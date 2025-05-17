@@ -1,0 +1,32 @@
+{
+    "type": "object",
+    "properties": {
+        "gameBoard": {
+            "type": "array",
+            "items": {
+                "type": "array",
+                "items": {
+					"type": "string",
+					"enum": ["EASY", "NEUTRAL", "HARD"]
+				}
+            }
+        },
+        "gameMatrix": {
+            "type": "array",
+            "items": {
+                "type": "array",
+                "items": {"type": "number"}
+            }
+        },
+        "seekerProbabilities": {
+            "type": "array",
+            "items": {"type": "number"}
+        },
+        "hiderProbabilities": {
+            "type": "array",
+            "items": {"type": "number"}
+        }
+    },
+    "required": ["gameBoard", "gameMatrix", "seekerProbabilities", "hiderProbabilities"],
+    "additionalProperties": false
+}

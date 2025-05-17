@@ -1,0 +1,17 @@
+:root {
+    --hider: #1975d1;
+    --seeker: #d17519
+}
+
+.page-container {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #f3f3f3
+}

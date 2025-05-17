@@ -1,0 +1,13 @@
+{
+    "type": "object",
+    "properties": {
+        "n": {
+            "type": "integer"
+        },
+        "m": {
+            "type": "integer"
+        }
+    },
+    "required": ["n", "m"],
+    "additionalProperties": false
+}
