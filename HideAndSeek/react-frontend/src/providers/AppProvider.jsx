@@ -76,9 +76,9 @@ export default function AppProvider({children}) {
         let proximityFactor = calculateProximityFactor(hiderCoordinates, seekerCoordinates)
 
         setSeekerScore((prevSeekerScore) =>
-            (prevSeekerScore - gameMatrix.current[flatHiderCoordinates][flatSeekerCoordinates]) * proximityFactor)
+            prevSeekerScore - gameMatrix.current[flatHiderCoordinates][flatSeekerCoordinates] * proximityFactor)
         setHiderScore((prevHiderScore) =>
-            (prevHiderScore + gameMatrix.current[flatHiderCoordinates][flatSeekerCoordinates]) * proximityFactor)
+            prevHiderScore + gameMatrix.current[flatHiderCoordinates][flatSeekerCoordinates] * proximityFactor)
     }
 
     const updateRoundsWon = (hiderCoordinates, seekerCoordinates) => {
