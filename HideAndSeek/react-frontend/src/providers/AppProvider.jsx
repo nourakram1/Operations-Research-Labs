@@ -61,12 +61,17 @@ export default function AppProvider({children}) {
         setSeekerCoordinates([-1, -1])
     }
 
+    const manhattanDistance = (firstCoordinate, secondCoordinate) => {
+        return Math.abs(firstCoordinate[0] - secondCoordinate[0]) +
+               Math.abs(firstCoordinate[1] - secondCoordinate[1])
+    }
+
     const calculateProximityFactor = (hiderCoordinates, seekerCoordinates) => {
-        if (!proximity || equal(hiderCoordinates, seekerCoordinates))
+        if (!proximity)
             return 1
 
-        return (Math.abs(hiderCoordinates[0] - seekerCoordinates[0]) +
-            Math.abs(hiderCoordinates[1] - seekerCoordinates[1])) / (m + n)
+        const md = manhattanDistance(hiderCoordinates, seekerCoordinates)
+        return md === 1 ? 0.5 : (md === 2 ? 0.75 : 1)
     }
 
     const updateScore = (hiderCoordinates, seekerCoordinates) => {
