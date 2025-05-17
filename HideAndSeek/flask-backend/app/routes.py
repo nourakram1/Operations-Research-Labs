@@ -6,6 +6,7 @@ from game_board import GameBoard
 from game_matrix import GameMatrix
 from game_solver import GameSolver
 from player import Player
+from proximity_penalty import ProximityPenalty
 
 bp = Blueprint('api', __name__)
 
@@ -20,10 +21,17 @@ def generate_game():
             'path': list(e.path)
         }), 400
     
-    game_board = GameBoard.generate(data["n"], data["m"])
+    n, m = data["n"], data["m"]
+    
+    game_board = GameBoard.generate(n, m)
+    
     game_matrix = GameMatrix.generate(game_board)
+    
+    # game_matrix = ProximityPenalty.apply(game_matrix, n, m)
+
     hider_probabilities = GameSolver.solve_hider_strategy(game_matrix)
     seeker_probabilities = GameSolver.solve_seeker_strategy(game_matrix)
+    
     response = {
         'game_matrix': game_matrix.tolist(),
         'game_board': [[cell.label for cell in row] for row in game_board],
