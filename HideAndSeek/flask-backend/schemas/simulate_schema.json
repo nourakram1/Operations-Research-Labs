@@ -1,0 +1,19 @@
+{
+    "type": "object",
+    "properties": {
+        "n": {"type": "integer"},
+        "m": {"type": "integer"},
+        "probabilities": {
+            "type": "array",
+            "items": {
+                "type": "number"
+            }
+        },
+		"num": {
+			"type": "integer",
+			"minimum": 1
+		}
+    },
+    "required": ["n", "m", "probabilities", "num"],
+    "additionalProperties": false
+}

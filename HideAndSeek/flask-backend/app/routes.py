@@ -1,7 +1,7 @@
 import numpy as np
 from flask import Blueprint, request, jsonify
 from jsonschema import validate, ValidationError
-from app.schema import generate_game_schema, play_schema, play_response_schema, generate_game_response_schema
+from app.schema import generate_game_schema, play_schema, play_response_schema, generate_game_response_schema, simulate_schema, simulate_response_schema
 from game_board import GameBoard
 from game_matrix import GameMatrix
 from game_solver import GameSolver
@@ -21,13 +21,14 @@ def generate_game():
             'path': list(e.path)
         }), 400
     
-    n, m = data["n"], data["m"]
+    n, m, proximity = data["n"], data["m"], data["proximity"]
     
     game_board = GameBoard.generate(n, m)
     
     game_matrix = GameMatrix.generate(game_board)
     
-    # game_matrix = ProximityPenalty.apply(game_matrix, n, m)
+    if proximity:
+        game_matrix = ProximityPenalty.apply(game_matrix, n, m)
 
     hider_probabilities = GameSolver.solve_hider_strategy(game_matrix)
     seeker_probabilities = GameSolver.solve_seeker_strategy(game_matrix)
@@ -63,6 +64,29 @@ def play():
     response = {'row': i, 'col': j}
     try:
         validate(instance=response, schema=play_response_schema)
+    except ValidationError as e:
+        return jsonify({
+            'error': f"Internal response validation error: {e.message}",
+            'path': list(e.path)
+        }), 500
+    return jsonify(response), 200
+
+@bp.route('/simulate', methods=['POST'])
+def simulate():
+    data = request.get_json(force=True)
+    try:
+        validate(instance=data, schema = simulate_schema)
+    except ValidationError as e:
+        return jsonify({
+            'error': e.message,
+            'path': list(e.path)
+        }), 400
+    
+    moves = Player.play(data["n"], data["m"], np.array(data["probabilities"]), data["num"])
+    
+    response = { 'moves': moves }
+    try:
+        validate(instance=response, schema = simulate_response_schema)
     except ValidationError as e:
         return jsonify({
             'error': f"Internal response validation error: {e.message}",

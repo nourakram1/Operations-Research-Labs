@@ -6,8 +6,11 @@
         },
         "m": {
             "type": "integer"
+        },
+        "proximity": {
+            "type": "boolean"
         }
     },
-    "required": ["n", "m"],
+    "required": ["n", "m", "proximity"],
     "additionalProperties": false
 }

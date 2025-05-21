@@ -1,0 +1,18 @@
+{
+	"item": "object",
+	"properties": {
+		"moves": {
+			"type": "array",
+			"items": {
+				"type": "array",
+				"items": {
+					"type": "integer"
+				},
+				"minItems": 2,
+				"maxItems": 2
+			}
+		}
+	},
+	"required": ["moves"],
+    "additionalProperties": false
+}
