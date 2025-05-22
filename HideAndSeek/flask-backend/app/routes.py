@@ -26,10 +26,10 @@ def generate_game():
     
     if Test.test_mode:
         try:
-            game_board = Test.get_test_case()
+            game_board, proximity = Test.get_test_case()
+            n, m = game_board.shape
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
-        n, m = game_board.shape
     else:
         game_board = GameBoard.generate(n, m)
     

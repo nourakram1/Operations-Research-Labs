@@ -6,27 +6,30 @@ class Test:
     test_number = 1
         
     @staticmethod
-    def test1() -> np.array:
+    def test1() -> tuple[np.array, bool]:
         data = [
         ["EASY", "EASY", "EASY", "HARD"],
         ["EASY", "HARD", "EASY", "EASY"],
         ["EASY", "HARD", "NEUTRAL", "NEUTRAL"],
         ["EASY", "HARD", "NEUTRAL", "NEUTRAL"]
         ]
-        return Difficulty.of(np.array(data))
+        proximity = True
+        return Difficulty.of(np.array(data)), proximity
     
     @staticmethod
-    def test2() -> np.array:
+    def test2() -> tuple[np.array, bool]:
         data = [
             ["NEUTRAL", "NEUTRAL"],
             ["EASY", "EASY"]
         ]
-        return Difficulty.of(np.array(data))
+        proximity = True
+        return Difficulty.of(np.array(data)), proximity
 
     @staticmethod
-    def test3() -> np.array:
+    def test3() -> tuple[np.array, bool]:
         data = [["EASY", "EASY", "NEUTRAL", "HARD"]]
-        return Difficulty.of(np.array(data))
+        proximity = False
+        return Difficulty.of(np.array(data)), proximity
     
     @staticmethod
     def get_test_case():
