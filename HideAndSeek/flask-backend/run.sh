@@ -12,7 +12,7 @@ source venv/bin/activate
 # venv\Scripts\activate.bat
 
 # Install dependencies
-pip install flask numpy jsonschema scipy
+pip install flask flask-cors numpy jsonschema scipy
 
 # Run Flask app
-flask run --port=8080
+flask run --port=5000
