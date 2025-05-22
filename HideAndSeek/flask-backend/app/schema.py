@@ -1,7 +1,7 @@
 import json
 import os
 
-SCHEMA_DIR = os.path.join(os.path.dirname(__file__), '..', 'schemas')
+SCHEMA_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'schemas')
 
 def load_schema(filename):
     with open(os.path.join(SCHEMA_DIR, filename), 'r') as f:
