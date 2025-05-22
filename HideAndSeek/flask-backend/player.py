@@ -17,11 +17,12 @@ class Player:
         return divmod(np.random.choice(n * m, p = probabilities), m)
 
     @staticmethod
-    def play(n: int, m: int, probabilities: np.array, size: int) -> list[list[int, int]]:
+    def play_n(n: int, m: int, probabilities: np.array, size: int) -> list[list[int]]:
         """
         Randomly selects a cell in an n x m grid based on the given 1D probabilities array.
 
         Args:
+            size (int): Number of moves.
             n (int): Number of rows.
             m (int): Number of columns.
             probabilities (np.array): A 1D array of length n * m representing selection probabilities.

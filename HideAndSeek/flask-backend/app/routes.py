@@ -82,7 +82,7 @@ def simulate():
             'path': list(e.path)
         }), 400
     
-    moves = Player.play(data["n"], data["m"], np.array(data["probabilities"]), data["num"])
+    moves = Player.play_n(data["n"], data["m"], np.array(data["probabilities"]), data["num"])
     
     response = { 'moves': moves }
     try:
