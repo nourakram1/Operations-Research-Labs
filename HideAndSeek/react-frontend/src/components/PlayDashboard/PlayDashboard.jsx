@@ -1,5 +1,5 @@
 import classes from './PlayDashboard.module.css'
-import { Button, Paper, Typography } from "@mui/material";
+import { Button, Paper, Typography, Box } from "@mui/material";
 import { useAppContext } from "/src/hooks/useAppContext.jsx";
 import PlayGrid from "/src/components/PlayGrid/PlayGrid.jsx";
 import { Link } from "react-router-dom";
@@ -15,57 +15,61 @@ function PlayDashboard() {
     } = useAppContext()
 
     return (
-        <Paper className={classes.paper} elevation={3} variant='outlined'>
-            <Typography fontSize={17} fontWeight={'bold'}>
+        <Paper className={classes.paper} elevation={3}>
+            <Typography variant="h4" fontWeight="bold" gutterBottom sx={{mb: 2.5}}>
                 You are the {playerRole === PlayerRole.HIDER ?
                 <span className={classes.hider}>hider</span> :
                 <span className={classes.seeker}>seeker</span>}!
             </Typography>
 
-            <div className={classes.statsContainer}>
-                <div className={classes.stats}>
-                    <Typography
-                        fontSize={15}
-                        className={classes.hider}
-                    >
-                        Hider's score: {hiderScore}
+            <Box className={classes.statsContainer}>
+                <Box className={classes.stats}>
+                    <Typography variant="h6" className={classes.hider} gutterBottom>
+                        Hider Stats
                     </Typography>
-                    <Typography
-                        fontSize={15}
-                        className={classes.hider}
-                    >
-                        Hider's rounds won: {hiderRoundsWon}
+                    <Typography variant="body1" className={classes.hider}>
+                        Score: {hiderScore}
                     </Typography>
-                </div>
-                <div className={classes.stats}>
-                    <Typography
-                        fontSize={15}
-                        className={classes.seeker}
-                    >
-                        Seeker's score: {seekerScore}
+                    <Typography variant="body1" className={classes.hider}>
+                        Rounds won: {hiderRoundsWon}
                     </Typography>
-                    <Typography
-                        fontSize={15}
-                        className={classes.seeker}
-                    >
-                        Seeker's rounds won: {seekerRoundsWon}
+                </Box>
+                <Box className={classes.stats}>
+                    <Typography variant="h6" className={classes.seeker} gutterBottom>
+                        Seeker Stats
                     </Typography>
-                </div>
-            </div>
+                    <Typography variant="body1" className={classes.seeker}>
+                        Score: {seekerScore}
+                    </Typography>
+                    <Typography variant="body1" className={classes.seeker}>
+                        Rounds won: {seekerRoundsWon}
+                    </Typography>
+                </Box>
+            </Box>
 
-            <div className={classes.prompt}>
-                <Typography fontSize={14} fontWeight={'bold'} variant='caption' color='textSecondary'>
+            <Box className={classes.prompt}>
+                <Typography variant="subtitle1" color="textSecondary">
                     {`Please choose a place to ${playerRole === PlayerRole.HIDER ? 'hide' : 'seek'}`}
                 </Typography>
-            </div>
+            </Box>
 
-            <div className={classes.playGridContainer}>
+            <Box className={classes.playGridContainer}>
                 <PlayGrid />
-            </div>
+            </Box>
 
-            <Link to={'/analyze'}>
-                <Button variant='contained'>
-                    Analyze
+            <Link to={'/analyze'} style={{ textDecoration: 'none' }}>
+                <Button 
+                    variant="contained" 
+                    size="large"
+                    sx={{
+                        px: 3,
+                        py: 1,
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontSize: '1.1rem'
+                    }}
+                >
+                    Analyze Game
                 </Button>
             </Link>
         </Paper>

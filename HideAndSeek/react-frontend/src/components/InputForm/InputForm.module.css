@@ -3,14 +3,24 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 45px 50px;
-    min-width: 500px;
+    padding: 32px 4vw;
+    max-width: 700px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
 }
 
 .radioGroups {
     display: flex;
     margin-top: 20px;
     gap: 35px;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: center;
 }
 
 .dimensions {
@@ -21,8 +31,20 @@
     gap: 25px;
     margin-top: 20px;
     margin-bottom: 30px;
+    flex-wrap: wrap;
 }
 
 .startGame {
-    height: 40px
+    height: 44px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    margin-top: 10px;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.08);
+    text-transform: none;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.startGame:hover {
+    background: #1976d2;
+    box-shadow: 0 4px 16px rgba(33, 150, 243, 0.15);
 }

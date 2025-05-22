@@ -69,8 +69,8 @@ function PlayDashboard() {
                             Hider's rounds won: {hiderRoundsWon}
                         </Typography>
                     </div>
-                    <div>
-                        <Typography fontSize={20} className={classes.score}>
+                    <div className={classes.score}>
+                        <Typography fontSize={20}>
                             Seeker's score: {seekerScore}
                         </Typography>
                         <Typography fontSize={20}>
@@ -115,27 +115,25 @@ function PlayDashboard() {
                 <Typography fontSize={30} fontWeight={'bold'}>
                     Game matrix
                 </Typography>
-                <TableContainer className={classes.tableContainer}>
-                    <Table>
-                        <TableBody>
-                            {
-                                tabulateGameMatrix().map((row, rowIndex) =>
-                                    <TableRow key={rowIndex}>
-                                        {
-                                            row.map((cell, colIndex) =>
-                                                <TableCell key={colIndex}>
-                                                    <MathJax>
-                                                        {cell}
-                                                    </MathJax>
-                                                </TableCell>
-                                            )
-                                        }
-                                    </TableRow>
-                                )
-                            }
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                <Table className={classes.tableContainer}>
+                    <TableBody>
+                        {
+                            tabulateGameMatrix().map((row, rowIndex) =>
+                                <TableRow key={rowIndex}>
+                                    {
+                                        row.map((cell, colIndex) =>
+                                            <TableCell key={colIndex}>
+                                                <MathJax>
+                                                    {cell}
+                                                </MathJax>
+                                            </TableCell>
+                                        )
+                                    }
+                                </TableRow>
+                            )
+                        }
+                    </TableBody>
+                </Table>
             </div>
 
             <div className={classes.probabilities}>
@@ -143,48 +141,44 @@ function PlayDashboard() {
                     Probabilities
                 </Typography>
                 <div className={classes.probabilityTables}>
-                    <TableContainer className={classes.probabilityTable}>
-                        <Table>
-                            <TableBody>
-                                {
-                                    tabulateProbabilities(hiderProbabilities.current, 'H').map((row, rowIndex) => (
-                                        <TableRow key={rowIndex}>
-                                            {
-                                                row.map((cell, colIndex) => (
-                                                    <TableCell key={colIndex}>
-                                                        <MathJax>
-                                                            {cell}
-                                                        </MathJax>
-                                                    </TableCell>
-                                                ))
-                                            }
-                                        </TableRow>
-                                    ))
-                                }
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                    <TableContainer className={classes.probabilityTable}>
-                        <Table>
-                            <TableBody>
-                                {
-                                    tabulateProbabilities(seekerProbabilities.current, 'S').map((row, rowIndex) => (
-                                        <TableRow key={rowIndex}>
-                                            {
-                                                row.map((cell, colIndex) => (
-                                                    <TableCell key={colIndex}>
-                                                        <MathJax>
-                                                            {cell}
-                                                        </MathJax>
-                                                    </TableCell>
-                                                ))
-                                            }
-                                        </TableRow>
-                                    ))
-                                }
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                    <Table className={classes.tableContainer}>
+                        <TableBody>
+                            {
+                                tabulateProbabilities(hiderProbabilities.current, 'H').map((row, rowIndex) => (
+                                    <TableRow key={rowIndex}>
+                                        {
+                                            row.map((cell, colIndex) => (
+                                                <TableCell key={colIndex}>
+                                                    <MathJax>
+                                                        {cell}
+                                                    </MathJax>
+                                                </TableCell>
+                                            ))
+                                        }
+                                    </TableRow>
+                                ))
+                            }
+                        </TableBody>
+                    </Table>
+                    <Table className={classes.tableContainer}>
+                        <TableBody>
+                            {
+                                tabulateProbabilities(seekerProbabilities.current, 'S').map((row, rowIndex) => (
+                                    <TableRow key={rowIndex}>
+                                        {
+                                            row.map((cell, colIndex) => (
+                                                <TableCell key={colIndex}>
+                                                    <MathJax>
+                                                        {cell}
+                                                    </MathJax>
+                                                </TableCell>
+                                            ))
+                                        }
+                                    </TableRow>
+                                ))
+                            }
+                        </TableBody>
+                    </Table>
                 </div>
             </div>
         </Paper>

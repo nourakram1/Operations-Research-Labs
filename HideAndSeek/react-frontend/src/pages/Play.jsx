@@ -1,10 +1,11 @@
 import PlayDashboard from "/src/components/PlayDashboard/PlayDashboard.jsx";
+import {Container} from "@mui/material";
 
 function Play() {
     return (
-        <div className={'page-container'}>
+        <Container sx={{marginTop: '50px', marginBottom: '50px'}}>
             <PlayDashboard />
-        </div>
+        </Container>
     )
 }
 
