@@ -7,6 +7,7 @@ from game_matrix import GameMatrix
 from game_solver import GameSolver
 from player import Player
 from proximity_penalty import ProximityPenalty
+from test import Test
 
 bp = Blueprint('api', __name__)
 
@@ -23,7 +24,14 @@ def generate_game():
     
     n, m, proximity = data["n"], data["m"], data["proximity"]
     
-    game_board = GameBoard.generate(n, m)
+    if Test.test_mode:
+        try:
+            game_board = Test.get_test_case()
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
+        n, m = game_board.shape
+    else:
+        game_board = GameBoard.generate(n, m)
     
     game_matrix = GameMatrix.generate(game_board)
     

@@ -1,4 +1,5 @@
 from enum import Enum
+import numpy as np
 
 class Difficulty(Enum):
     """
@@ -17,3 +18,7 @@ class Difficulty(Enum):
         self.label = label
         self.penalty = penalty
         self.reward = reward
+        
+    @staticmethod
+    def of(game_board: np.array) -> np.array:
+        return np.vectorize(lambda x: Difficulty[x])(game_board)
