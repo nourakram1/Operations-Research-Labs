@@ -34,6 +34,8 @@ export default function AppProvider({children}) {
     const [seekerScore, setSeekerScore] = useState(1)
     const [hiderRoundsWon, setHiderRoundsWon] = useState(0)
     const [seekerRoundsWon, setSeekerRoundsWon] = useState(0)
+    const [hiderScoreChange, setHiderScoreChange] = useState(0)
+    const [seekerScoreChange, setSeekerScoreChange] = useState(0)
 
     const [hiderCoordinates, setHiderCoordinates] = useState([-1, -1])
     const [seekerCoordinates, setSeekerCoordinates] = useState([-1, -1])
@@ -58,6 +60,8 @@ export default function AppProvider({children}) {
         setSeekerScore(0)
         setHiderRoundsWon(0)
         setSeekerRoundsWon(0)
+        setHiderScoreChange(0)
+        setSeekerScoreChange(0)
         setHiderCoordinates([-1, -1])
         setSeekerCoordinates([-1, -1])
     }
@@ -65,11 +69,12 @@ export default function AppProvider({children}) {
     const updateScore = (hiderCoordinates, seekerCoordinates) => {
         const flatHiderCoordinates = flatCoordinates(hiderCoordinates[0], hiderCoordinates[1])
         const flatSeekerCoordinates = flatCoordinates(seekerCoordinates[0], seekerCoordinates[1])
+        const scoreChange = gameMatrix.current[flatHiderCoordinates][flatSeekerCoordinates]
 
-        setSeekerScore((prevSeekerScore) =>
-            prevSeekerScore - gameMatrix.current[flatHiderCoordinates][flatSeekerCoordinates])
-        setHiderScore((prevHiderScore) =>
-            prevHiderScore + gameMatrix.current[flatHiderCoordinates][flatSeekerCoordinates])
+        setSeekerScore((prevSeekerScore) => prevSeekerScore - scoreChange)
+        setHiderScore((prevHiderScore) => prevHiderScore + scoreChange)
+        setSeekerScoreChange(-scoreChange)
+        setHiderScoreChange(scoreChange)
     }
 
     const updateRoundsWon = (hiderCoordinates, seekerCoordinates) => {
@@ -133,6 +138,8 @@ export default function AppProvider({children}) {
                 seekerScore, setSeekerScore,
                 hiderRoundsWon, setHiderRoundsWon,
                 seekerRoundsWon, setSeekerRoundsWon,
+                hiderScoreChange, setHiderScoreChange,
+                seekerScoreChange, setSeekerScoreChange,
                 hiderCoordinates, setHiderCoordinates,
                 seekerCoordinates, setSeekerCoordinates,
                 flatCoordinates,

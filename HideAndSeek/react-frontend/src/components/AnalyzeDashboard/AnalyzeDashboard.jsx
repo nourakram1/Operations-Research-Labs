@@ -1,7 +1,8 @@
 import classes from './AnalyzeDashboard.module.css'
-import { Paper, Table, TableBody, TableCell, TableContainer, TableRow, Typography} from "@mui/material";
+import { Paper, Table, TableBody, TableCell, TableContainer, TableRow, Typography, Button } from "@mui/material";
 import { useAppContext } from "/src/hooks/useAppContext.jsx";
 import {MathJax} from "better-react-mathjax";
+import { Link } from "react-router-dom";
 
 function PlayDashboard() {
     const {
@@ -180,6 +181,14 @@ function PlayDashboard() {
                         </TableBody>
                     </Table>
                 </div>
+            </div>
+
+            <div className={classes.buttonContainer}>
+                <Link to="/play" className={classes.link}>
+                    <Button variant="contained" color="primary">
+                        Back to Game
+                    </Button>
+                </Link>
             </div>
         </Paper>
     )

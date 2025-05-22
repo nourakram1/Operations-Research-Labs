@@ -1,5 +1,5 @@
 import classes from './PlayDashboard.module.css'
-import { Button, Paper, Typography, Box } from "@mui/material";
+import { Button, Paper, Typography } from "@mui/material";
 import { useAppContext } from "/src/hooks/useAppContext.jsx";
 import PlayGrid from "/src/components/PlayGrid/PlayGrid.jsx";
 import { Link } from "react-router-dom";
@@ -11,67 +11,77 @@ function PlayDashboard() {
         hiderScore,
         seekerScore,
         hiderRoundsWon,
-        seekerRoundsWon
+        seekerRoundsWon,
+        hiderScoreChange,
+        seekerScoreChange
     } = useAppContext()
 
+    const formatScoreChange = (change) => {
+        if (change === 0) return '';
+        return change > 0 ? `(+${change})` : `(${change})`;
+    }
+
     return (
-        <Paper className={classes.paper} elevation={3}>
-            <Typography variant="h4" fontWeight="bold" gutterBottom sx={{mb: 2.5}}>
+        <Paper className={classes.paper} elevation={3} variant='outlined'>
+            <Typography fontSize={25} fontWeight={'bold'}>
                 You are the {playerRole === PlayerRole.HIDER ?
                 <span className={classes.hider}>hider</span> :
                 <span className={classes.seeker}>seeker</span>}!
             </Typography>
 
-            <Box className={classes.statsContainer}>
-                <Box className={classes.stats}>
-                    <Typography variant="h6" className={classes.hider} gutterBottom>
-                        Hider Stats
+            <div className={classes.statsContainer}>
+                <div className={classes.stats}>
+                    <Typography
+                        fontSize={15}
+                        className={classes.hider}
+                    >
+                        Hider's score: {hiderScore} <span className={classes.scoreChange}>{formatScoreChange(hiderScoreChange)}</span>
                     </Typography>
-                    <Typography variant="body1" className={classes.hider}>
-                        Score: {hiderScore}
+                    <Typography
+                        fontSize={15}
+                        className={classes.hider}
+                    >
+                        Hider's rounds won: {hiderRoundsWon}
                     </Typography>
-                    <Typography variant="body1" className={classes.hider}>
-                        Rounds won: {hiderRoundsWon}
+                </div>
+                <div className={classes.stats}>
+                    <Typography
+                        fontSize={15}
+                        className={classes.seeker}
+                    >
+                        Seeker's score: {seekerScore} <span className={classes.scoreChange}>{formatScoreChange(seekerScoreChange)}</span>
                     </Typography>
-                </Box>
-                <Box className={classes.stats}>
-                    <Typography variant="h6" className={classes.seeker} gutterBottom>
-                        Seeker Stats
+                    <Typography
+                        fontSize={15}
+                        className={classes.seeker}
+                    >
+                        Seeker's rounds won: {seekerRoundsWon}
                     </Typography>
-                    <Typography variant="body1" className={classes.seeker}>
-                        Score: {seekerScore}
-                    </Typography>
-                    <Typography variant="body1" className={classes.seeker}>
-                        Rounds won: {seekerRoundsWon}
-                    </Typography>
-                </Box>
-            </Box>
+                </div>
+            </div>
 
-            <Box className={classes.prompt}>
-                <Typography variant="subtitle1" color="textSecondary">
+            <div className={classes.prompt}>
+                <Typography fontSize={14} fontWeight={'bold'} variant='caption' color='textSecondary'>
                     {`Please choose a place to ${playerRole === PlayerRole.HIDER ? 'hide' : 'seek'}`}
                 </Typography>
-            </Box>
+            </div>
 
-            <Box className={classes.playGridContainer}>
+            <div className={classes.playGridContainer}>
                 <PlayGrid />
-            </Box>
+            </div>
 
-            <Link to={'/analyze'} style={{ textDecoration: 'none' }}>
-                <Button 
-                    variant="contained" 
-                    size="large"
-                    sx={{
-                        px: 3,
-                        py: 1,
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        fontSize: '1.1rem'
-                    }}
-                >
-                    Analyze Game
-                </Button>
-            </Link>
+            <div className={classes.buttonContainer}>
+                <Link to="/" className={classes.link}>
+                    <Button variant="outlined" color="primary">
+                        Back to setup
+                    </Button>
+                </Link>
+                <Link to="/analyze" className={classes.link}>
+                    <Button variant="contained" color="primary">
+                        Analyze
+                    </Button>
+                </Link>
+            </div>
         </Paper>
     )
 }

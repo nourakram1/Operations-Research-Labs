@@ -20,6 +20,7 @@
     border-radius: 12px;
     width: 100%;
     justify-content: center;
+    margin-top: 2rem;
 }
 
 .stats {
@@ -61,10 +62,26 @@
     font-weight: 600;
 }
 
+.scoreChange {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin-left: 4px;
+}
+
 .playGridContainer {
     margin-top: 15px;
     margin-bottom: 40px;
     width: 100%;
     display: flex;
     justify-content: center;
+}
+
+.link {
+    text-decoration: none;
+}
+
+.buttonContainer {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
 }
