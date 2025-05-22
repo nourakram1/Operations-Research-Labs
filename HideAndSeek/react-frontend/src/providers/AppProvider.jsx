@@ -62,29 +62,14 @@ export default function AppProvider({children}) {
         setSeekerCoordinates([-1, -1])
     }
 
-    const manhattanDistance = (firstCoordinate, secondCoordinate) => {
-        return Math.abs(firstCoordinate[0] - secondCoordinate[0]) +
-               Math.abs(firstCoordinate[1] - secondCoordinate[1])
-    }
-
-    const calculateProximityFactor = (hiderCoordinates, seekerCoordinates) => {
-        if (!proximity)
-            return 1
-
-        const md = manhattanDistance(hiderCoordinates, seekerCoordinates)
-        return md === 1 ? 0.5 : (md === 2 ? 0.75 : 1)
-    }
-
     const updateScore = (hiderCoordinates, seekerCoordinates) => {
         const flatHiderCoordinates = flatCoordinates(hiderCoordinates[0], hiderCoordinates[1])
         const flatSeekerCoordinates = flatCoordinates(seekerCoordinates[0], seekerCoordinates[1])
 
-        let proximityFactor = calculateProximityFactor(hiderCoordinates, seekerCoordinates)
-
         setSeekerScore((prevSeekerScore) =>
-            prevSeekerScore - gameMatrix.current[flatHiderCoordinates][flatSeekerCoordinates] * proximityFactor)
+            prevSeekerScore - gameMatrix.current[flatHiderCoordinates][flatSeekerCoordinates])
         setHiderScore((prevHiderScore) =>
-            prevHiderScore + gameMatrix.current[flatHiderCoordinates][flatSeekerCoordinates] * proximityFactor)
+            prevHiderScore + gameMatrix.current[flatHiderCoordinates][flatSeekerCoordinates])
     }
 
     const updateRoundsWon = (hiderCoordinates, seekerCoordinates) => {
