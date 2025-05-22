@@ -1,0 +1,28 @@
+.paper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 45px 50px;
+    min-width: 500px;
+}
+
+.radioGroups {
+    display: flex;
+    margin-top: 20px;
+    gap: 35px;
+}
+
+.dimensions {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    margin-top: 20px;
+    margin-bottom: 30px;
+}
+
+.startGame {
+    height: 40px
+}

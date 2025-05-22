@@ -34,10 +34,10 @@ def generate_game():
     seeker_probabilities = GameSolver.solve_seeker_strategy(game_matrix)
     
     response = {
-        'game_matrix': game_matrix.tolist(),
-        'game_board': [[cell.label for cell in row] for row in game_board],
-        'seeker_probabilities': seeker_probabilities.tolist(),
-        'hider_probabilities': hider_probabilities.tolist()
+        'gameMatrix': game_matrix.tolist(),
+        'gameBoard': [[cell.label for cell in row] for row in game_board],
+        'seekerProbabilities': seeker_probabilities.tolist(),
+        'hiderProbabilities': hider_probabilities.tolist()
     }
     try:
         validate(instance=response, schema=generate_game_response_schema)
